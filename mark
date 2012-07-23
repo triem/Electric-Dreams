@@ -1,0 +1,1 @@
+    door = number_range( 0, 5 );

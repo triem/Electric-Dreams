@@ -1,0 +1,50 @@
+#! /bin/csh -f
+# Written by Furey.
+# With additions from Tony.
+# And a few modifications by the Electric Dream Team
+
+# Set the port number. the live is 8100
+# Remember to change it when you move the code.
+set port = 8101
+if ( "$1" != "" ) set port = "$1"
+
+# Change to area directory.
+cd ../area
+
+# Set limits.
+if ( -e shutdown.txt ) rm -f shutdown.txt
+
+while ( 1 )
+    # If you want to have logs in a different directory,
+    #   change the 'set logfile' line to reflect the directory name.
+    set index = 1000
+    while ( 1 )
+	set logfile = ../log/$index.log
+	if ( ! -e $logfile ) break
+	@ index++
+    end
+
+    # Run dreams.
+    ../src/dreams $port >&! $logfile
+
+    # Copy blank who_list for web page
+    if ( $port == 4000 ) then
+        cp /web/who.blank /web/who.html
+    endif
+
+    # Restart, giving old connections a chance to die.
+    if ( -f shutdown.txt ) then
+	exit
+    endif
+    # Prevent mud from responing after an initial booting crash.
+    if ( ! -f clean_reboot ) then
+	exit
+    endif
+     sleep 1
+    # A little thing to make it so that I can actually use the files in
+    # the savearea directory -- Maltus
+    chmod 775 ../player
+    chmod 775 ../savearea
+    chmod 775 ../savearea/*
+#  
+end
