@@ -57,12 +57,12 @@ int chance_obj;
     if ( number_range( 1, 19 ) < 2 && !IS_SET( obj->extra_flags, ITEM_MAGIC ) )
     {
 	obj->condition = UMAX( 0, obj->condition - 1 );
-        act( "`C$p takes a little damage.`w", victim, obj, NULL, TO_CHAR );
+        act( "`C$p`C takes a little damage.`w", victim, obj, NULL, TO_CHAR );
     }
     else if ( number_range( 1, 125 ) < 2 && IS_SET( obj->extra_flags, ITEM_MAGIC ) )
     {
         obj->condition = UMAX( 0, obj->condition - 1 );
-        act( "`C$p takes a little damage.`w", victim, obj, NULL, TO_CHAR );
+        act( "`C$p`C takes a little damage.`w", victim, obj, NULL, TO_CHAR );
     }
 }
 
@@ -2935,7 +2935,7 @@ void obj_to_room( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex )
 
    	if ( count >= 200 )
     	{
-	    sprintf( buf, "`W%s is lost in the clutter of the room.\n\r", obj->short_descr );
+	    sprintf( buf, "`W%s`W is lost in the clutter of the room.\n\r", obj->short_descr );
 	    send_to_room( pRoomIndex->vnum, buf );
 	    extract_obj( obj );
 	    return;
@@ -2947,7 +2947,7 @@ void obj_to_room( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex )
     {
 	if ( pRoomIndex->exit[ DIR_DOWN ] == NULL )
 	{
-	    sprintf( buf, "`W%s falls down, and disappears.\n\r", obj->short_descr );
+	    sprintf( buf, "`W%s`W falls down, and disappears.\n\r", obj->short_descr );
 	    for ( victim = pRoomIndex->people ; victim != NULL ; victim = victim->next_in_room )
 	    {
 		if ( victim->position < POS_RESTING )
@@ -2965,7 +2965,7 @@ void obj_to_room( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex )
 	else if ( pRoomIndex->exit[ DIR_DOWN ]->u1.to_room != NULL
 	          && !IS_SET( pRoomIndex->exit[ DIR_DOWN ]->exit_info, EX_CLOSED ) )
 	{
-	    sprintf( buf, "`W%s falls downward.\n\r", obj->short_descr );
+	    sprintf( buf, "`W%s`W falls downward.\n\r", obj->short_descr );
 	    for ( victim = pRoomIndex->people ; victim != NULL ; victim = victim->next_in_room )
 	    {
 		if ( victim->position < POS_RESTING )
@@ -2977,7 +2977,7 @@ void obj_to_room( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex )
 		    send_to_char( buf, victim );
 
 	    }
-	    sprintf( buf, "`W%s falls into the room from above.\n\r", obj->short_descr );
+	    sprintf( buf, "`W%s`W falls into the room from above.\n\r", obj->short_descr );
 	    for ( victim = pRoomIndex->exit[ DIR_DOWN ]->u1.to_room->people ; victim != NULL ; victim = victim->next_in_room )
 	    {
 		if ( victim->position < POS_RESTING )

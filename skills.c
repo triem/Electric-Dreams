@@ -1049,7 +1049,7 @@ void check_hp_improve( CHAR_DATA *victim, int tot_damage )
       add_hp = number_range( 1, 2 );
 
 
-    sprintf( buf,"`MYou have become tougher!\n\r" );
+    sprintf( buf,"`MYou have become tougher!`w\n\r" );
     send_to_char( buf, victim );
 
     victim->max_hit         	+= add_hp;
@@ -1102,7 +1102,7 @@ void check_mana_improve( CHAR_DATA *ch, int sn )
 
             	ch->max_mana[ i ] += num;
             	ch->pcdata->perm_mana[i] += num;
-            	sprintf(buf, "`MYou gain %d more mana!\n\r", num);
+            	sprintf(buf, "`MYou gain %d more mana!`w\n\r", num);
 	    	send_to_char(buf,ch);
             }
 	}
@@ -1132,7 +1132,7 @@ void check_mv_improve( CHAR_DATA *ch, int move )
 	&& number_range( 1, 3000 ) <= ( get_curr_stat( ch, STAT_CON ) +
         get_curr_stat( ch, STAT_DEX ) ) * move )
     {
-    	send_to_char("`MYou gain more stamina!\n\r", ch);
+    	send_to_char("`MYou gain more stamina!`w\n\r", ch);
         ch->pcdata->perm_move++;
         ch->move++;
         ch->max_move++;

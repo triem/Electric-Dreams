@@ -623,8 +623,8 @@ void one_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA * wielding, int dt )
 	case 1:
 	    if ( wield != NULL )
 	    {
-		act( "`Y$p slips from $n's grasp.`w", ch, wield, wield, TO_ROOM );
-		act( "`Y$p slips from your grasp.`w", ch, wield, wield, TO_CHAR );
+		act( "`Y$p`Y slips from $n's grasp.`w", ch, wield, wield, TO_ROOM );
+		act( "`Y$p`Y slips from your grasp.`w", ch, wield, wield, TO_CHAR );
 		obj_from_char( wield, "P" );
 		obj_to_room( wield, ch->in_room );
 		if (IS_NPC(ch) )
@@ -645,8 +645,8 @@ void one_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA * wielding, int dt )
 	case 2:
 	    if ( wield != NULL )
 	    {
-		act( "$n swings wildly with $p and damage themselves.", ch, wield, wield, TO_ROOM );
-		act( "You swing wildly with $p and it hits your leg.", ch, wield, wield, TO_CHAR );
+		act( "`w$n swings wildly with $p`w and damage themselves.", ch, wield, wield, TO_ROOM );
+		act( "`wYou swing wildly with $p`w and it hits your leg.", ch, wield, wield, TO_CHAR );
 	    	damage( ch, ch, number_range(1,ch->level), dt, dam_type );
 	    }
 	    else
@@ -2361,8 +2361,8 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	    ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_MAEGMENEL)  && race_table[ ch->race ][ ch->sex ].world == 1 )
 	    ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_LITHDOR)  && race_table[ ch->race ][ ch->sex ].world == 2 ) )
 	    {
-		cact( "You are zapped by $p.", ch, obj, NULL, TO_CHAR, "`W" );
-		cact( "$n is zapped by $p.",   ch, obj, NULL, TO_ROOM, "`W" );
+		cact( "You are zapped by $p`W.", ch, obj, NULL, TO_CHAR, "`W" );
+		cact( "$n is zapped by $p`W.",   ch, obj, NULL, TO_ROOM, "`W" );
 		obj_from_char( obj, "O" );
 		obj_to_room( obj, ch->in_room );
 	    }
