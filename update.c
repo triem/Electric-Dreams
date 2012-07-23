@@ -1317,14 +1317,18 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
 	switch ( iCond )
 	{
 	case COND_FULL:
+        if ( condition >= 1 && ch->position > POS_SLEEPING )
+            send_to_char( "You are hungry.\n\r",  ch );
 	    break;
 
 	case COND_THIRST:
+        if ( condition >= 1 && ch->position > POS_SLEEPING )
+            send_to_char( "You are thirsty.\n\r", ch );
 	    break;
 
 	case COND_DRUNK:
 	    if ( condition != 0 )
-		send_to_char( "You are sober.\n\r", ch );
+            send_to_char( "You are sober.\n\r", ch );
 	    break;
 	}
     }

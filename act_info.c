@@ -1660,6 +1660,14 @@ void do_look( CHAR_DATA *ch, char *argument )
 	    send_to_char( "  ",ch);
 	    send_to_char( ch->in_room->description, ch );
 	}
+	
+	if ( IS_SET(ch->in_room->room_flags,ROOM_SAFE) )
+        send_to_char( "  `MYou feel safe here.`w\n\r",ch);
+    
+    if ( IS_SET(ch->in_room->room_flags,ROOM_MANAGEN) 
+      && IS_SET(ch->in_room->room_flags,ROOM_HPGEN)
+      && IS_SET(ch->in_room->room_flags,ROOM_MVGEN) )
+        send_to_char( "  `CYou feel restful here.`w\n\r",ch);
 
         for ( s = ch->in_room->spro ; s != NULL ; s = s->next )
 	if ( s->sp->type == 'X' || s->sp->type == 'Y' ) 
@@ -2533,8 +2541,16 @@ strcat( buf1, buf );
 send_to_char( buf1, ch );
 sprintf( buf, "`B(:)=========================================================================(:)`w\n\r%s\n\r", pos );
     send_to_char( buf, ch );
-    if ( !IS_NPC( victim ) && victim->pcdata->condition[COND_DRUNK] > 10 )
-	send_to_char( "`WYou are drunk.\n\r", ch );
+    
+    if ( !IS_NPC( victim ) )
+    {
+        if ( victim->pcdata->condition[COND_DRUNK] > 10 )
+            send_to_char( "`WYou are drunk.`w\n\r", ch );
+        if ( victim->pcdata->condition[COND_FULL] == 0 && !IS_IMMORTAL( victim ) )
+            send_to_char( "`WYou are hungry.`w\n\r", ch );
+        if ( victim->pcdata->condition[COND_THIRST] == 0 && !IS_IMMORTAL( victim ) )
+            send_to_char( "`WYou are thirsty.`w\n\r", ch );
+    }
 
     if ( victim->affected != NULL )
  	send_to_char( "`BYou have affects:  `YType affects\n\r", ch );
