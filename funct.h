@@ -167,6 +167,7 @@ bool 	check_blind	args( ( CHAR_DATA *ch ) );
 void 	check_sensitive	args( ( CHAR_DATA *ch ) );
 CHAR_QUESTS *get_char_quest args( ( CHAR_DATA *ch, int quest_number ) );
 void    get_clanrank args( ( CHAR_DATA *ch, char *argument) );
+void    do_vital     args( ( CHAR_DATA *ch, char *argument ) );
 
 /*
  * forge.c

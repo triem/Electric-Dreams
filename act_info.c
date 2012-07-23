@@ -4455,3 +4455,91 @@ void get_clanrank( CHAR_DATA *ch, char *argument )
     strcpy (argument, rank);
     return;
 }    
+
+void do_vital( CHAR_DATA *ch, char *argument )
+{   
+    char arg[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH];
+    BUFFER *output;
+    bool short_out = FALSE;
+    
+    output = new_buf();
+    argument = one_argument( argument, arg );
+    
+    while ( arg[0] != '\0' )
+    {
+        if ( !strcasecmp( arg, "-s") )
+            short_out = TRUE;
+        else if ( !strcasecmp( arg, "hp") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d hp ", ch->hit );
+            else
+                sprintf( buf, "You have %d hit points.\n\r", ch->hit );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "mv") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d mv ", ch->move );
+            else
+                sprintf( buf, "You have %d move.\n\r", ch->move );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "fi") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d fire ", ch->mana[0] );
+            else
+                sprintf( buf, "You have %d fire mana.\n\r", ch->mana[0] );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "wa") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d water ", ch->mana[1] );
+            else
+                sprintf( buf, "You have %d water mana.\n\r", ch->mana[1] );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "ea") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d earth ", ch->mana[2] );
+            else
+                sprintf( buf, "You have %d earth mana.\n\r", ch->mana[2] );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "wi") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d wind ", ch->mana[3] );
+            else
+                sprintf( buf, "You have %d wind mana.\n\r", ch->mana[3] );
+            add_buf(output, buf);
+        }
+        else if ( !strcasecmp( arg, "sp") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d spirit ", ch->mana[4] );
+            else
+                sprintf( buf, "You have %d spirit mana.\n\r", ch->mana[4] );
+            add_buf(output, buf);
+        }
+        
+        argument = one_argument( argument, arg );
+    }
+    
+    if ( *buf_string(output) == '\0' )
+    {
+        add_buf(output, "Syntax: vital [-s] (name) ...\n\r");
+        add_buf(output, "Vital names: hp mv fi wa ea wi sp\n\r");
+    }
+    else if ( short_out )
+    {
+        add_buf(output, "\n\r");
+    }
+    
+    page_to_char(buf_string(output), ch);
+    free_buf(output);
+}
