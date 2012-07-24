@@ -159,6 +159,7 @@ sh_int                  gsn_stone_skin;
 sh_int                  gsn_sanctuary;
 sh_int                  gsn_earth_shield;
 sh_int                  gsn_water_shield;
+sh_int                  gsn_spirit_shield;
 
 sh_int                  gsn_shadowform;
 sh_int                  gsn_mass_shadowform;

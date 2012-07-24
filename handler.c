@@ -1141,6 +1141,13 @@ int get_mana_cost( CHAR_DATA * ch, int sn, int i)
     if ( get_skill( ch, gsn_element_power[ i ][ 2 ] ) == 100 )
     	cost = cost - ( cost * 10 / 100 );
 
+    if ( ( i == ELEMENT_FIRE && is_affected(ch, gsn_fire_shield ) )
+      || ( i == ELEMENT_WATER && is_affected(ch, gsn_water_shield ) )
+      || ( i == ELEMENT_EARTH && is_affected(ch, gsn_earth_shield ) )
+      || ( i == ELEMENT_WIND && is_affected(ch, gsn_wind_shield ) )
+      || ( i == ELEMENT_SPIRIT && is_affected(ch, gsn_spirit_shield ) ) )
+        cost = cost * 60 / 100;
+
     if ( skill_table[ sn ].element[ i ].mana == 0 )
 	return 0;
 

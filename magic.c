@@ -4442,20 +4442,55 @@ void spell_protection_from_spirit( int sn, int level, CHAR_DATA *ch, void *vo )
     return;
 }
 
+// Clear any existing shields on the character (quietly if the
+//  removed shield was the same type as was casted).
+//  Returns true if the effect removed matched the argument.
+bool clear_shield( CHAR_DATA *ch, int called_from )
+{
+    AFFECT_DATA *af;
+    AFFECT_DATA *af_next;
+    bool was_same = FALSE;
+    // Some shields have multiple effects so we want to make sure
+    //  we only send the wear off message once.
+    bool message_sent = FALSE;
+    
+    for ( af = ch->affected; af != NULL; af = af_next )
+    {
+        // This is needed because the effect may be recycled
+        // by the time we get to the af->next in for loop.
+        af_next = af->next;
+        
+        if ( af->type == gsn_fire_shield
+          || af->type == gsn_water_shield
+          || af->type == gsn_earth_shield
+          || af->type == gsn_wind_shield
+          || af->type == gsn_spirit_shield )
+        {
+            if ( af->type == called_from )
+                was_same = TRUE;
+            else if ( !message_sent )
+            {
+                // Send the normal effect wear off message.
+                send_to_char( skill_table[af->type].msg_off, ch );
+                send_to_char( "\n\r", ch );
+                message_sent = TRUE;
+            }
+            affect_remove( ch, af );
+        }
+    }
+    
+    return was_same;
+}
 
 void spell_fire_shield( int sn, int level, CHAR_DATA *ch, void *vo )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
+    bool already_had = FALSE;
 
     if ( IS_SET( victim->spell_flags, SPELL_SHIELD ) )
-    {
-	if (victim == ch)
-	  send_to_char("You are already shielded.\n\r",ch);
-	else
-	  act("$N `wis already protected by a shield.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
+        already_had = clear_shield( victim, sn );
+    
     af.type      = sn;
     af.level     = level;
     af.duration  = 10;
@@ -4463,8 +4498,12 @@ void spell_fire_shield( int sn, int level, CHAR_DATA *ch, void *vo )
     af.modifier  = -10;
     af.bitvector = 0;
     affect_to_char( victim, &af );
-    act( "$n `wis surrounded by a `Rfiery shield`w.", victim, NULL, NULL, TO_ROOM );
-    send_to_char( "You are surrounded by a `Rfiery shield`w.\n\r", victim );
+    
+    if ( !already_had )
+    {
+        act( "$n `wis surrounded by a `Rfiery shield`w.", victim, NULL, NULL, TO_ROOM );
+        send_to_char( "You are surrounded by a `Rfiery shield`w.\n\r", victim );
+    }
     return;
 }
 
@@ -4472,15 +4511,11 @@ void spell_water_shield( int sn, int level, CHAR_DATA *ch, void *vo )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
+    bool already_had = FALSE;
 
     if ( IS_SET( victim->spell_flags, SPELL_SHIELD ) )
-    {
-	if (victim == ch)
-	  send_to_char("You are already shielded.\n\r",ch);
-	else
-	  act("$N `wis already protected by a shield.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
+        already_had = clear_shield( victim, sn );
+    
     af.type      = sn;
     af.level     = level;
     af.duration  = 10;
@@ -4494,8 +4529,12 @@ void spell_water_shield( int sn, int level, CHAR_DATA *ch, void *vo )
     af.bitvector = AFF_BREATHE_UNDERWATER;
     af.bit_type  = BIT_AFFECT;
     affect_to_char( victim, &af );
-    act( "$n `wis surrounded by a shield of water.", victim, NULL, NULL, TO_ROOM );
-    send_to_char( "You are surrounded by a water shield.\n\r", victim );
+    
+    if ( !already_had )
+    {
+        act( "$n `wis surrounded by a shield of water.", victim, NULL, NULL, TO_ROOM );
+        send_to_char( "You are surrounded by a water shield.\n\r", victim );
+    }
     return;
 }
 
@@ -4503,15 +4542,11 @@ void spell_earth_shield( int sn, int level, CHAR_DATA *ch, void *vo )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
+    bool already_had = FALSE;
 
     if ( IS_SET( victim->spell_flags, SPELL_SHIELD ) )
-    {
-	if (victim == ch)
-	  send_to_char("You are already shielded.\n\r",ch);
-	else
-	  act("$N `wis already protected by a shield.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
+        already_had = clear_shield( victim, sn );
+    
     af.type      = sn;
     af.level     = level;
     af.duration  = 10;
@@ -4522,9 +4557,13 @@ void spell_earth_shield( int sn, int level, CHAR_DATA *ch, void *vo )
     af.location	 = APPLY_HIT;
     af.modifier  = 50;
     affect_to_char( victim, &af );
-    act( "$n `wis surrounded by an earth shield.", victim, NULL, NULL, TO_ROOM );
-    send_to_char( "You are surrounded by an earth shield.\n\r", victim );
-    victim->hit += 50;
+    
+    if ( !already_had )
+    {
+        act( "$n `wis surrounded by an earth shield.", victim, NULL, NULL, TO_ROOM );
+        send_to_char( "You are surrounded by an earth shield.\n\r", victim );
+        victim->hit += 50;
+    }
     return;
 }
 
@@ -4532,15 +4571,11 @@ void spell_wind_shield( int sn, int level, CHAR_DATA *ch, void *vo )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
+    bool already_had = FALSE;
 
     if ( IS_SET( victim->spell_flags, SPELL_SHIELD ) )
-    {
-	if (victim == ch)
-	  send_to_char("You are already shielded.\n\r",ch);
-	else
-	  act("$N `wis already protected by a shield.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
+        already_had = clear_shield( victim, sn );
+    
     af.type      = sn;
     af.level     = level;
     af.duration  = 10;
@@ -4551,8 +4586,12 @@ void spell_wind_shield( int sn, int level, CHAR_DATA *ch, void *vo )
     af.location  = APPLY_DEX;
     af.modifier  = 3;
     affect_to_char( victim, &af );
-    act( "$n `wis surrounded by a wind shield.", victim, NULL, NULL, TO_ROOM );
-    send_to_char( "You are surrounded by a wind shield.\n\r", victim );
+    
+    if ( !already_had )
+    {
+        act( "$n `wis surrounded by a wind shield.", victim, NULL, NULL, TO_ROOM );
+        send_to_char( "You are surrounded by a wind shield.\n\r", victim );
+    }
     return;
 }
 
@@ -4560,15 +4599,11 @@ void spell_spirit_shield( int sn, int level, CHAR_DATA *ch, void *vo )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
+    bool already_had = FALSE;
 
     if ( IS_SET( victim->spell_flags, SPELL_SHIELD ) )
-    {
-	if (victim == ch)
-	  send_to_char("You are already shielded.\n\r",ch);
-	else
-	  act("$N `wis already protected by a shield.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
+        already_had = clear_shield( victim, sn );
+    
     af.type      = sn;
     af.level     = level;
     af.duration  = 10;
@@ -4585,8 +4620,12 @@ void spell_spirit_shield( int sn, int level, CHAR_DATA *ch, void *vo )
     af.bit_type  = BIT_RES;
     affect_to_char( victim, &af );
     victim->mana[ELEMENT_SPIRIT] += ch->level * 10 + 150;
-    act( "$n `wis surrounded by a spirit shield.", victim, NULL, NULL, TO_ROOM );
-    send_to_char( "You are surrounded by a spirit shield.\n\r", victim );
+    
+    if ( !already_had )
+    {
+        act( "$n `wis surrounded by a spirit shield.", victim, NULL, NULL, TO_ROOM );
+        send_to_char( "You are surrounded by a spirit shield.\n\r", victim );
+    }
     return;
 }
 

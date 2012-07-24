@@ -3466,7 +3466,7 @@ const	struct	skill_type	skill_table	[MAX_SKILL]	=
 	  { 0, -1 },
 	  { 188, 1 } },
 	spell_spirit_shield,		TAR_CHAR_DEFENSIVE,	POS_STANDING,
-	NULL,			18,
+	&gsn_spirit_shield,			18,
 	"",			"Your spirit shield shimmers then fades away.",
 	9, SPELL_SHIELD
     },

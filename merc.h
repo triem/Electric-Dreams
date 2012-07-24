@@ -3295,6 +3295,7 @@ extern	sh_int	gsn_fire_shield;
 extern	sh_int	gsn_stone_skin;
 extern	sh_int	gsn_earth_shield;
 extern	sh_int	gsn_water_shield;
+extern  sh_int  gsn_spirit_shield;
 extern	sh_int	gsn_shadowform;
 extern	sh_int	gsn_mass_shadowform;
 extern  sh_int  gsn_plague;
