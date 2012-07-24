@@ -237,6 +237,7 @@ extern int	per_cpu_usage[];
 #define PULSE_CHAR_DREAM_UPDATE		( 4 * PULSE_PER_SECOND)
 #define PULSE_CHAR_FORGE_UPDATE		( 4 * PULSE_PER_SECOND)
 #define PULSE_TICK			(30 * PULSE_PER_SECOND)
+#define PULSE_REGEN          (5 * PULSE_PER_SECOND)
 #define PULSE_TRIGGER			(35 * PULSE_PER_SECOND)
 #define PULSE_RACE			( 8 * PULSE_PER_SECOND)
 #define PULSE_AREA			(60 * PULSE_PER_SECOND)
@@ -3495,8 +3496,6 @@ extern	const	struct	exp_type	exp_table	[];
 extern	const	struct	exp_type_old	exp_table_old	[];
 extern	const	int	train_cost_table		[ 26 ][ 6 ];
 extern  const 	sh_int track_loss[SECT_MAX];
-extern	const	int	mana_stat		[ MAX_ELEMENT_TYPE ];
-extern	const	int	mana_gain_table		[ 26 ];
 extern	char	* const	attrib_sub_table		[ 26 ][ 6 ];
 extern 		char *			opti_wiz_list 	[ MAX_OPTIWIZ ];
 extern  	struct  race_list_type	race_list	[MAX_RACE];

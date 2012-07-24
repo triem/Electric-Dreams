@@ -36,8 +36,6 @@ long changed_system = 0;
 
 int	save_number = 0;
 
-extern const	int	mana_gain_table[];
-
 void reset_doors(AREA_DATA *pArea)
 {
     ROOM_INDEX_DATA *pRoomIndex;
@@ -1003,15 +1001,6 @@ bool mob_skill( CHAR_DATA *ch )
     }
 }
 
-const int mana_stat[ MAX_ELEMENT_TYPE ] =
-{
-	STAT_STR, /*  Fire   */
-	STAT_INT, /*  Water  */
-	STAT_CON, /*  Earth  */
-	STAT_DEX, /*  Wind   */
-	STAT_WIS  /*  Spirit */
-};
-
 void gain_exp( CHAR_DATA *ch, int gain )
 {
     int levels=0;
@@ -1148,9 +1137,15 @@ void hit_gain( CHAR_DATA *ch )
 
     if (IS_AFFECTED(ch,AFF_HASTE))
 	gain /=2 ;
+    
+    // Regen cut here to account for faster regen ticks
+    gain /= (PULSE_TICK / PULSE_REGEN);
 
     gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
 
+    if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
+        gain = UMAX( gain, 1);
+    
     ch->hit = UMIN( ch->hit + gain , ch->max_hit );
 }
 
@@ -1172,7 +1167,7 @@ void mana_gain( CHAR_DATA *ch )
 
     for ( type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
     {
-	gain = 4 * mana_gain_table[ get_curr_stat( ch, mana_stat[ type ] ) ];
+	gain = 30;
 	gain *= ( get_skill( ch, gsn_element_power[ type ][ 0 ] ) +
 		  get_skill( ch, gsn_element_power[ type ][ 1 ] ) +
 		  get_skill( ch, gsn_element_power[ type ][ 2 ] ) );
@@ -1231,9 +1226,12 @@ void mana_gain( CHAR_DATA *ch )
         if (IS_AFFECTED(ch,AFF_HASTE))
             gain /=2 ;
 
+    // Regen cut here to account for faster regen ticks
+    gain /= (PULSE_TICK / PULSE_REGEN);
+
         gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
 
-	gain = UMAX( gain, 5); 
+	gain = UMAX( gain, 2);
 
 	ch->mana[ type ] = UMIN( ch->max_mana[ type ] , ch->mana[ type ] + gain );
     }
@@ -1284,8 +1282,14 @@ void move_gain( CHAR_DATA *ch )
     if (IS_AFFECTED(ch,AFF_HASTE))
         gain /=2 ;
 
+    // Regen cut here to account for faster regen ticks
+    gain /= (PULSE_TICK / PULSE_REGEN);
+
     gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
 
+    if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
+        gain = UMAX( gain, 1);
+    
     ch->move = UMIN( ch->move + gain, ch->max_move );
 }
 
@@ -2770,12 +2774,8 @@ void char_update( void )
 		    	strncpy( ch->logon_data->exit, "Logged-IN", 30 );
 	    }
 	}
-	if (ch->timer < 12 ) /*Not in void */
-	    check_regen( ch );
-
-	if (ch->timer < 12 ) /*Not in void */
-	if ( ch->position == POS_STUNNED || ch->position == POS_INCAP)
-	    update_pos( ch );
+    
+    // Regen used to happen here but has been moved to regen_update.
 
 	if ( !IS_NPC(ch) )
 	ch->timer++;
@@ -3016,6 +3016,27 @@ void char_update( void )
  
   }
  
+    return;
+}
+
+
+void regen_update( void )
+{   
+    CHAR_DATA *ch;
+    
+    for ( ch = char_list; ch != NULL; ch = ch->next )
+    {
+        if (ch->timer >= 12 )
+            // They are in the void
+            continue;
+        
+        if ( ch->position >= POS_STUNNED )
+            check_regen( ch );
+
+        if ( ch->position == POS_STUNNED || ch->position == POS_INCAP )
+            update_pos( ch );
+    }
+
     return;
 }
 
@@ -3460,6 +3481,7 @@ void update_handler( void )
     static  int     pulse_mobile;
     static  int     pulse_violence;
     static  int     pulse_point;
+    static  int     pulse_regen;
     static  int     pulse_race;
     static  int     pulse_save_area;
     static  int     pulse_save_logon;
@@ -3611,11 +3633,17 @@ void update_handler( void )
 	    script_update(mob, TRIG_TICK_PULSE );
 	}
 
-	room_update	( );
+    room_update	( );
 	weather_update	( );
 	char_update	( );
 	obj_update	( );
 /*	web_who_update ( );   not until httpd is open, reverie */
+    }
+
+    if ( --pulse_regen <= 0 )
+    {
+        pulse_regen = PULSE_REGEN;
+        regen_update( );
     }
 
     aggr_update( );

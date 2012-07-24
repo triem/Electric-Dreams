@@ -13,9 +13,6 @@
 #include "merc.h"
 #include "magic.h"
 
-//extern const int mana_stat[MAX_ELEMENT_TYPE];
-//extern const int mana_gain_table[26];
-
 void do_skillz( CHAR_DATA * ch, char * argument )
 {
     char buf[MAX_INPUT_LENGTH];
@@ -1095,8 +1092,7 @@ void check_mana_improve( CHAR_DATA *ch, int sn )
 
 	    if (value2 <= 15 )
             {
-		temp = mana_gain_table[get_curr_stat( ch, mana_stat[i])];
-            	num = URANGE(1, number_range( 1, temp / 2 ), 10 );
+            	num = number_range( 1, 7 );
 		if ( ch->max_mana[ i ] >= 5000 )
 		    return;
 

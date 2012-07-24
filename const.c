@@ -29,16 +29,6 @@
 #include "magic.h"
 #include "interp.h"
 
-const	int	mana_gain_table [ 26 ] =
-{
-	1,
-	1,	1,	1,	1,	1,	/* 5 */
-	1,	1,	2,	2,	2,	/* 10 */
-	3,	3,	3,	4,	4,	/* 15 */
-	4,	5,	5,	5,	6,	/* 20 */
-	6,	7,	8,	9,	10	/* 25 */
-};
-
 
 const	int	train_cost_table [ 26 ] [ 6 ] =
 {

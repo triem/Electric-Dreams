@@ -1178,6 +1178,7 @@ void 	weather_update	args( ( void ) );
 void 	char_dream_update	args( () );
 void 	char_forge_update	args( () );
 void 	char_update	args( ( void ) );
+void    regen_update    args( ( void ) );
 void 	obj_update_trigger	args( ( void ) );
 void 	trigger_update	args( ( void ) );
 void 	obj_update	args( ( void ) );
