@@ -2208,9 +2208,11 @@ void do_scan( CHAR_DATA *ch, char *argument )
     ROOM_INDEX_DATA *room;
     ROOM_INDEX_DATA *to_room;
     EXIT_DATA *pexit;
+    OBJ_DATA *obj;
     char buf[MAX_INPUT_LENGTH];
     int door;
     int num;
+    int item_count;
     bool found = FALSE;
     bool fMoveable;
 
@@ -2255,6 +2257,7 @@ void do_scan( CHAR_DATA *ch, char *argument )
 		    num = 10; 
 		}
 		else
+        {
 	        for( vch = pexit->u1.to_room->people ; vch != NULL ; vch = vch->next_in_room )
 	        {
 		    if ( IS_AFFECTED( vch, AFF_HIDE ) && !IS_IMMORTAL(ch) )
@@ -2278,6 +2281,40 @@ void do_scan( CHAR_DATA *ch, char *argument )
 			send_to_char( buf, ch );
 		    }
 	        }
+
+            item_count = 0;
+            for( obj = pexit->u1.to_room->contents ; obj != NULL ; obj = obj->next_content )
+            {
+                if ( ( obj->wear_data == NULL || obj->wear_data->wear_loc == WEAR_NONE ) 
+                &&  can_see_obj( ch, obj ) && obj->short_descr[0] != '\0'
+                && ( !IS_SET( obj->extra_flags, ITEM_NO_SHOW ) || IS_IMMORTAL( ch ) ) 
+                && ( !IS_SET( obj->extra_flags, ITEM_BURIED )  || IS_IMMORTAL( ch ) ) )
+                {
+                    item_count++;
+                    if ( item_count > MAX_SCAN_ITEMS )
+                        break;
+                }
+            }
+            if ( item_count <= MAX_SCAN_ITEMS )
+            {
+                for( obj = pexit->u1.to_room->contents ; obj != NULL ; obj = obj->next_content )
+                {
+                    if ( ( obj->wear_data == NULL || obj->wear_data->wear_loc == WEAR_NONE ) 
+                    &&  can_see_obj( ch, obj ) && obj->short_descr[0] != '\0'
+                    && ( !IS_SET( obj->extra_flags, ITEM_NO_SHOW ) || IS_IMMORTAL( ch ) ) 
+                    && ( !IS_SET( obj->extra_flags, ITEM_BURIED )  || IS_IMMORTAL( ch ) ) )
+                    {
+                        sprintf( buf, "%s `wis %s %s.\n\r", obj->short_descr, scan_msg[ num ], dir_name[ door ] );
+                        send_to_char( buf, ch );
+                    }
+                }
+            }
+            else
+            {
+                sprintf( buf, "a pile of objects are %s %s.\n\r", scan_msg[ num ], dir_name[ door ] );
+                send_to_char( buf, ch );
+            }
+        }
 	        to_room = pexit->u1.to_room;
 	    }
 	    else

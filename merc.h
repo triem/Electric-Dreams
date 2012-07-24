@@ -226,6 +226,7 @@ extern int	per_cpu_usage[];
 #define MAX_OPTIWIZ			3
 #define MAX_GROUP			21
 #define MAX_IN_GROUP			30
+#define MAX_SCAN_ITEMS      5
 
 #define PULSE_PER_SECOND		4
 #define PULSE_VIOLENCE			( 4 * PULSE_PER_SECOND)
