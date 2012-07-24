@@ -4493,12 +4493,14 @@ void get_clanrank( CHAR_DATA *ch, char *argument )
     return;
 }    
 
-void do_vital( CHAR_DATA *ch, char *argument )
+void do_vitals( CHAR_DATA *ch, char *argument )
 {   
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_INPUT_LENGTH];
+    char pos[MAX_INPUT_LENGTH];
     BUFFER *output;
     bool short_out = FALSE;
+    bool multi = FALSE;
     
     output = new_buf();
     argument = one_argument( argument, arg );
@@ -4506,77 +4508,230 @@ void do_vital( CHAR_DATA *ch, char *argument )
     while ( arg[0] != '\0' )
     {
         if ( !strcasecmp( arg, "-s") )
+        {
+            // The short option will make it print all the arguments
+            // on a single line, in a tighter format.
             short_out = TRUE;
-        else if ( !strcasecmp( arg, "hp") )
+            argument = one_argument( argument, arg );
+            continue;
+        }
+        
+        if ( short_out && multi )
+            add_buf(output, ", ");        
+        
+        if ( !str_prefix( arg, "level") )
         {
             if ( short_out )
-                sprintf( buf, "%d hp ", ch->hit );
+                sprintf( buf, "level %d", ch->level );
+            else
+                sprintf( buf, "You are level %d.\n\r", ch->level );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "hits") || !str_prefix( arg, "hp") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d hp", ch->hit );
             else
                 sprintf( buf, "You have %d hit points.\n\r", ch->hit );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "mv") )
+        else if ( !str_prefix( arg, "moves") || !strcasecmp( arg, "mv") )
         {
             if ( short_out )
-                sprintf( buf, "%d mv ", ch->move );
+                sprintf( buf, "%d move", ch->move );
             else
                 sprintf( buf, "You have %d move.\n\r", ch->move );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "fi") )
+        else if ( !str_prefix( arg, "fire") )
         {
             if ( short_out )
-                sprintf( buf, "%d fire ", ch->mana[0] );
+                sprintf( buf, "%d fire", ch->mana[0] );
             else
                 sprintf( buf, "You have %d fire mana.\n\r", ch->mana[0] );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "wa") )
+        else if ( !str_prefix( arg, "water") )
         {
             if ( short_out )
-                sprintf( buf, "%d water ", ch->mana[1] );
+                sprintf( buf, "%d water", ch->mana[1] );
             else
                 sprintf( buf, "You have %d water mana.\n\r", ch->mana[1] );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "ea") )
+        else if ( !str_prefix( arg, "earth") )
         {
             if ( short_out )
-                sprintf( buf, "%d earth ", ch->mana[2] );
+                sprintf( buf, "%d earth", ch->mana[2] );
             else
                 sprintf( buf, "You have %d earth mana.\n\r", ch->mana[2] );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "wi") )
+        else if ( !str_prefix( arg, "wind") )
         {
             if ( short_out )
-                sprintf( buf, "%d wind ", ch->mana[3] );
+                sprintf( buf, "%d wind", ch->mana[3] );
             else
                 sprintf( buf, "You have %d wind mana.\n\r", ch->mana[3] );
             add_buf(output, buf);
         }
-        else if ( !strcasecmp( arg, "sp") )
+        else if ( !str_prefix( arg, "spirit") )
         {
             if ( short_out )
-                sprintf( buf, "%d spirit ", ch->mana[4] );
+                sprintf( buf, "%d spirit", ch->mana[4] );
             else
                 sprintf( buf, "You have %d spirit mana.\n\r", ch->mana[4] );
             add_buf(output, buf);
         }
+        else if ( !str_prefix( arg, "armor") || !str_prefix( arg, "ac") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d ac", GET_AC(ch) );
+            else
+                sprintf( buf, "You have %d armor rating.\n\r", GET_AC(ch) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "practices") || !str_prefix( arg, "pracs") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d pracs", ch->practice );
+            else
+                sprintf( buf, "You have %d practices.\n\r", ch->practice );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "strength") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d str", get_curr_stat(ch, STAT_STR) );
+            else
+                sprintf( buf, "You have %d strength.\n\r", get_curr_stat(ch, STAT_STR) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "dexterity") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d dex", get_curr_stat(ch, STAT_DEX) );
+            else
+                sprintf( buf, "You have %d dexterity.\n\r", get_curr_stat(ch, STAT_DEX) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "constitution") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d con", get_curr_stat(ch, STAT_CON) );
+            else
+                sprintf( buf, "You have %d constitution.\n\r", get_curr_stat(ch, STAT_CON) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "intelligence") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d int", get_curr_stat(ch, STAT_INT) );
+            else
+                sprintf( buf, "You have %d intelligence.\n\r", get_curr_stat(ch, STAT_INT) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "wisdom") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d wis", get_curr_stat(ch, STAT_WIS) );
+            else
+                sprintf( buf, "You have %d wisdom.\n\r", get_curr_stat(ch, STAT_WIS) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "charisma") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d cha", get_curr_stat(ch, STAT_CHR) );
+            else
+                sprintf( buf, "You have %d charisma.\n\r", get_curr_stat(ch, STAT_CHR) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "charisma") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d cha", get_curr_stat(ch, STAT_CHR) );
+            else
+                sprintf( buf, "You have %d charisma.\n\r", get_curr_stat(ch, STAT_CHR) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "hitroll") || !str_prefix( arg, "hr") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d hr", GET_HITROLL(ch) );
+            else
+                sprintf( buf, "You have %d hitroll.\n\r", GET_HITROLL(ch) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "damroll") || !str_prefix( arg, "dr") )
+        {
+            if ( short_out )
+                sprintf( buf, "%d dr", GET_DAMROLL(ch) );
+            else
+                sprintf( buf, "You have %d damroll.\n\r", GET_DAMROLL(ch) );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "status") )
+        {
+            sprintf( pos, get_pos_name( ch->position ) );
+            pos[0] = LOWER( pos[0] );
+            
+            if ( short_out )
+                sprintf( buf, "%s", pos );
+            else
+                sprintf( buf, "You are %s.\n\r", pos );
+            add_buf(output, buf);
+                        
+            if ( ch->pcdata->condition[COND_DRUNK] > 10 )
+            {
+                if ( short_out )
+                    add_buf(output, ", drunk");
+                else
+                    add_buf(output, "You are drunk.\n\r");
+            }
+            if ( ch->pcdata->condition[COND_FULL] == 0 && !IS_IMMORTAL( ch ) )
+            {
+                if ( short_out )
+                    add_buf(output, ", hungry");
+                else
+                    add_buf(output, "You are hungry.\n\r");
+            }
+            if ( ch->pcdata->condition[COND_THIRST] == 0 && !IS_IMMORTAL( ch ) )
+            {
+                if ( short_out )
+                    add_buf(output, ", thirsty");
+                else
+                    add_buf(output, "You are thirsty.\n\r");
+            }
+        }
+        else
+        {
+            sprintf( buf, "Invalid vitals argument: %s\n\r", arg );
+            send_to_char( buf, ch );
+            free_buf(output);
+            return;
+        }
         
+        multi = TRUE;
         argument = one_argument( argument, arg );
     }
     
     if ( *buf_string(output) == '\0' )
     {
-        add_buf(output, "Syntax: vital [-s] (name) ...\n\r");
-        add_buf(output, "Vital names: hp mv fi wa ea wi sp\n\r");
+        // There is no output buffer, this catches passing no arguments,
+        // passing only "-s" or passing only invalid arguments.
+        add_buf(output, "Syntax: vitals [-s] (stat) ...\n\r\n\r");
+        add_buf(output, "Stats: level hp mv fire water earth wind spirit\n\r");
+        add_buf(output, "  ac pracs str dex con int wis cha hr dr status\n\r");
     }
     else if ( short_out )
     {
+        // The short sprints to the output buffer don't include any
+        // newlines, so add a trailing one.
         add_buf(output, "\n\r");
     }
     
     page_to_char(buf_string(output), ch);
     free_buf(output);
+    return;
 }
