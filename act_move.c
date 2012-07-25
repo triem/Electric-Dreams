@@ -2289,13 +2289,6 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	    if ( key == NULL )
 		continue;
 	    found = TRUE;
-	    if ( number_percent() < (IS_SET( key->extra_flags,ITEM_MAGIC)?-2:3) )
-	    {
-	    	extract_obj( key );
-	    	send_to_char("The key broke in the lock!\n\r", ch );
-	    	act( "$n broke the key in the lock!", ch, NULL, NULL, TO_ROOM);
-	    	return;
-	    }
 	    SET_BIT( lock_list->lock_info, LOCK_LOCKED);
 	    send_to_char( "*Click*\n\r", ch );
 	}
@@ -2340,13 +2333,6 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	    if ( key == NULL )
 		continue;
 	    found = TRUE;
-	    if ( number_percent() < (IS_SET( key->extra_flags,ITEM_MAGIC)?-2:3) )
-	    {
-	    	extract_obj( key );
-	    	send_to_char("The key broke in the lock!\n\r", ch );
-	    	act( "$n broke the key in the lock!", ch, NULL, NULL, TO_ROOM);
-	    	return;
-	    }
 	    if ( is_door( pexit_rev ) && pexit_rev->u1.to_room == ch->in_room )
 	    for ( lock_list2 = pexit_rev->lock; lock_list2 != NULL; lock_list2 = lock_next2 )
 	    {
@@ -2418,13 +2404,6 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	    if ( key == NULL )
 		continue;
 	    found = TRUE;
-	    if ( number_percent() < (IS_SET( key->extra_flags,ITEM_MAGIC)?-2:3) )
-	    {
-	    	extract_obj( key );
-	    	send_to_char("The key broke in the lock!\n\r", ch );
-	    	act( "$n broke the key in the lock!", ch, NULL, NULL, TO_ROOM);
-	    	return;
-	    }
 	    REMOVE_BIT( lock_list->lock_info, LOCK_LOCKED);
 	    send_to_char( "*Click*\n\r", ch );
 	}
@@ -2467,13 +2446,6 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	    if ( key == NULL )
 		continue;
 	    found = TRUE;
-	    if ( number_percent() < (IS_SET( key->extra_flags,ITEM_MAGIC)?-2:3) )
-	    {
-	    	extract_obj( key );
-	    	send_to_char("The key broke in the lock!\n\r", ch );
-	    	act( "$n broke the key in the lock!", ch, NULL, NULL, TO_ROOM);
-	    	return;
-	    } 
 	    if ( is_door( pexit_rev ) && pexit_rev->u1.to_room == ch->in_room )
 	    for ( lock_list2 = pexit_rev->lock; lock_list2 != NULL; lock_list2 = lock_next2 )
 	    {
