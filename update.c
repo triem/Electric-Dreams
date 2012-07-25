@@ -1141,7 +1141,8 @@ void hit_gain( CHAR_DATA *ch )
     // Regen cut here to account for faster regen ticks
     gain /= (PULSE_TICK / PULSE_REGEN);
 
-    gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
+    gain = gain * ( UMAX( 1, ( int ) ( current_time - ch->regen_timer ) ) )
+                / ( PULSE_REGEN / PULSE_PER_SECOND );
 
     if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
         gain = UMAX( gain, 1);
@@ -1155,85 +1156,130 @@ void mana_gain( CHAR_DATA *ch )
     int gain;
     int number;
     int type;
+    bool full = TRUE;
+    bool med = FALSE;
+    bool deep_med = FALSE;
 
-    if (IS_NPC(ch) && (ch->position != POS_FIGHTING ) )
+    if ( IS_NPC( ch ) && ( ch->position != POS_FIGHTING ) )
     {
         for ( type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
-        {
-            ch->mana[ type ] = UMIN( ch->max_mana[ type ], ch->mana[ type] + ( 3 * (ch->level) ) );
-	}      
+            ch->mana[type] = UMIN( ch->max_mana[type], ch->mana[type] + ( ch->level * 3 ) );
         return;
+    }
+
+    // If we're all full up we don't even need to go on
+    for ( type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
+        if ( ch->mana[type] < ch->max_mana[type] )
+        {
+            full = FALSE;
+            break;
+        }
+    if ( full )
+        return;
+
+    if ( !IS_NPC( ch ) )
+    {
+        // We want to figure out whether meditation or deep
+        //  meditation has triggered now, so it can be applied
+        //  to all of the mana pools
+        number = number_percent();
+        if ( number < get_skill( ch, gsn_meditation ) )
+        {
+            med = TRUE;
+            check_improve( ch, gsn_meditation, TRUE, 2 );
+        }
+        if ( number < get_skill( ch, gsn_deep_meditation ) )
+        {
+            deep_med = TRUE;
+            check_improve( ch, gsn_deep_meditation, TRUE, 2 );
+        }
     }
 
     for ( type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
     {
-	gain = 30;
-	gain *= ( get_skill( ch, gsn_element_power[ type ][ 0 ] ) +
-		  get_skill( ch, gsn_element_power[ type ][ 1 ] ) +
-		  get_skill( ch, gsn_element_power[ type ][ 2 ] ) );
-	gain /= 100;
-	number = number_percent();
+        // Start with a combination of stats and character level
+        gain = ( ( get_curr_stat( ch, STAT_WIS ) +
+                   get_curr_stat( ch, STAT_INT ) +
+                   ch->level ) / 3 );
 
-    	if(!IS_NPC(ch) && (number < get_skill( ch, gsn_meditation ) ) )
-    	{
-            gain += number * gain / 100;
-            if (ch->mana[ type ] < ch->max_mana[ type ])
-        	check_improve(ch,gsn_meditation,TRUE,10);
-    	}
+        // Factor in their skill in this pool's element
+        gain *= ( get_skill( ch, gsn_element_power[type][0] ) +
+                  get_skill( ch, gsn_element_power[type][1] ) +
+                  get_skill( ch, gsn_element_power[type][2] ) ) / 100;
 
-	if ( !IS_NPC( ch ) && ( number < get_skill( ch, gsn_deep_meditation ) ) )
-	{
-	    gain += number * gain / 100;
-	    if ( ch->mana[ type ] < ch->max_mana[ type ] )
-		check_improve( ch, gsn_deep_meditation, TRUE, 10 );
-	}
+        if( !IS_NPC( ch ) )
+        {
+            // Just having meditation or deep meditation gives a bonus
+            if ( get_skill( ch, gsn_meditation ) >= 25 )
+                gain += gain / 10;
+            if ( get_skill( ch, gsn_deep_meditation ) >= 25 )
+                gain += gain / 10;
 
+            //  And then further bonuses if they trigger
+            if ( med )
+                gain += (gain * 2) / number_range(4, 8);
+            if ( deep_med )
+                gain += (gain * 4) / number_range(4, 8);
+        }
+
+        // Regen effects have a minimum provided gain, giving a
+        //  better overall gain to lower level characters or
+        //  those with less magical skill
         if ( IS_SET( ch->in_room->room_flags, ROOM_MANAGEN ) )
-            gain *= 3;
-	else if ( IS_SET( ch->affected_by_2, AFF_MANA_GEN ) )
-	    gain *= 2;
+        {
+            gain += UMAX( gain * 2, 50 );
+            // We don't want these effects to directly stack but they
+            //  still get a small bonus for having the buff too
+            if ( IS_SET( ch->affected_by_2, AFF_MANA_GEN ) )
+                gain += UMAX( gain / 2, 20 );
+        }
+        else if ( IS_SET( ch->affected_by_2, AFF_MANA_GEN ) )
+            gain += UMAX( gain * 2, 50 );
 
-	switch ( ch->position )
-	{
-	    default:		gain /= 4;			break;
-	    case POS_SLEEPING: 	gain *= 2;			break;
-	    case POS_RESTING:	gain /= 2;			break;
-	    case POS_FIGHTING:	gain /= 6;			break;
-	}
+        switch ( ch->position )
+        {
+            default:            gain /= 4; break;
+            case POS_SLEEPING:  gain *= 2; break;
+            case POS_RESTING:   gain /= 2; break;
+            case POS_FIGHTING:  gain /= 6; break;
+        }
 
-/* if NPC calculate and stop here */
-    	if ( IS_NPC(ch) )
-	{
-        	gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
-		ch->mana[ type ] = UMIN( ch->max_mana[ type ] , ch->mana[ type ] + gain );
-		return;
-	}
-	if ( ch->pcdata->condition[COND_FULL]  <= 0 )
-	    gain /= 2;
+        // NPCs are done at this point
+        if ( IS_NPC(ch) )
+        {
+            gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / ( PULSE_REGEN / PULSE_PER_SECOND );
+            ch->mana[type] = UMIN( ch->max_mana[type], ch->mana[type] + gain );
+            return;
+        }
 
-	if ( ch->pcdata->condition[COND_THIRST] <= 0 )
-	    gain /= 2;
+        if ( ch->pcdata->condition[COND_FULL] <= 0 )
+            gain /= 2;
 
-	if ( ch->pcdata->condition[COND_DRUNK] > 0 )
-	    gain /= 2;
+        if ( ch->pcdata->condition[COND_THIRST] <= 0 )
+            gain /= 2;
+
+        if ( ch->pcdata->condition[COND_DRUNK] > 0 )
+            gain /= 2;
 
         if ( IS_AFFECTED( ch, AFF_POISON ) )
-	    gain /= 4;
+            gain /= 2;
 
-        if (IS_AFFECTED(ch, AFF_PLAGUE))
-            gain /= 8;
+        if ( IS_AFFECTED( ch, AFF_PLAGUE ) )
+            gain /= 4;
 
-        if (IS_AFFECTED(ch,AFF_HASTE))
-            gain /=2 ;
+        // Regen cut here to account for faster regen ticks
+        gain /= (PULSE_TICK / PULSE_REGEN);
 
-    // Regen cut here to account for faster regen ticks
-    gain /= (PULSE_TICK / PULSE_REGEN);
+        // If they recently changed positions, they'll only get
+        //  regen for however long they've been in this one since
+        //  the last regen tick
+        gain = gain * ( UMAX( 1, ( int ) ( current_time - ch->regen_timer ) ) )
+                    / ( PULSE_REGEN / PULSE_PER_SECOND );
 
-        gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
+        // And finally to make sure that regen can't stop completely
+        gain = UMAX( gain, 2);
 
-	gain = UMAX( gain, 2);
-
-	ch->mana[ type ] = UMIN( ch->max_mana[ type ] , ch->mana[ type ] + gain );
+        ch->mana[type] = UMIN( ch->max_mana[type], ch->mana[type] + gain );
     }
 }
 
@@ -1285,7 +1331,8 @@ void move_gain( CHAR_DATA *ch )
     // Regen cut here to account for faster regen ticks
     gain /= (PULSE_TICK / PULSE_REGEN);
 
-    gain = gain * ( ( int ) ( current_time - ch->regen_timer ) ) / 30;
+    gain = gain * ( UMAX( 1, ( int ) ( current_time - ch->regen_timer ) ) )
+                / ( PULSE_REGEN / PULSE_PER_SECOND );
 
     if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
         gain = UMAX( gain, 1);
