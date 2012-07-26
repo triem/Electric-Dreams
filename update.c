@@ -1227,14 +1227,14 @@ void mana_gain( CHAR_DATA *ch )
         //  those with less magical skill
         if ( IS_SET( ch->in_room->room_flags, ROOM_MANAGEN ) )
         {
-            gain += UMAX( gain * 2, 50 );
+            gain += UMAX( gain, 50 );
             // We don't want these effects to directly stack but they
             //  still get a small bonus for having the buff too
             if ( IS_SET( ch->affected_by_2, AFF_MANA_GEN ) )
                 gain += UMAX( gain / 2, 20 );
         }
         else if ( IS_SET( ch->affected_by_2, AFF_MANA_GEN ) )
-            gain += UMAX( gain * 2, 50 );
+            gain += UMAX( gain, 50 );
 
         switch ( ch->position )
         {
