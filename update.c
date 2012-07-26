@@ -1129,15 +1129,12 @@ void hit_gain( CHAR_DATA *ch )
 	    gain *= 2;
     }
 
-    if ( IS_AFFECTED(ch, AFF_POISON) )
-	gain /= 4;
+    if ( IS_AFFECTED( ch, AFF_POISON ) )
+        gain /= 4;
 
-    if (IS_AFFECTED(ch, AFF_PLAGUE))
-	gain /= 8;
+    if ( IS_AFFECTED( ch, AFF_PLAGUE ) )
+        gain /= 8;
 
-    if (IS_AFFECTED(ch,AFF_HASTE))
-	gain /=2 ;
-    
     // Regen cut here to account for faster regen ticks
     gain /= (PULSE_TICK / PULSE_REGEN);
 
@@ -1319,14 +1316,14 @@ void move_gain( CHAR_DATA *ch )
         check_improve(ch,gsn_youna,TRUE,6);
     }
 
-    if ( IS_AFFECTED(ch, AFF_POISON) )
-	gain /= 4;
+    if ( IS_AFFECTED( ch, AFF_POISON ) )
+        gain /= 4;
 
-    if (IS_AFFECTED(ch, AFF_PLAGUE))
+    if ( IS_AFFECTED( ch, AFF_PLAGUE ) )
         gain /= 8;
 
-    if (IS_AFFECTED(ch,AFF_HASTE))
-        gain /=2 ;
+    if ( IS_AFFECTED( ch, AFF_HASTE ) )
+        gain *= 2;
 
     // Regen cut here to account for faster regen ticks
     gain /= (PULSE_TICK / PULSE_REGEN);
