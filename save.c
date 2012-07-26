@@ -195,7 +195,8 @@ void fwrite_char( CHAR_DATA *ch, FILE *fp )
     fprintf( fp, "Plyd %ld\n",
 	ch->played + (int) (current_time - ch->logon)	);
     for ( read_notes = ch->pcdata->read_notes ; read_notes != NULL ; read_notes = read_notes->next )
-	fprintf( fp, "Read %d\n", (int) read_notes->date_stamp );
+        fprintf( fp, "Read %d\n", (int) read_notes->date_stamp );
+    fprintf( fp, "Changes %d\n", (int) ch->pcdata->last_change );
     fprintf( fp, "Scro %d\n", 	ch->lines		);
     fprintf( fp, "Room %ld\n",
         (  ch->in_room == get_room_index( ROOM_VNUM_LIMBO )
@@ -1792,6 +1793,7 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
     ch->pcdata->corpse			= NULL;
     ch->pcdata->debt			= NULL;
     ch->pcdata->read_notes		= NULL;
+    ch->pcdata->last_change     = current_time;
     ch->pcdata->perm_hit		= 0;
     ch->pcdata->perm_move		= 0;
     ch->pcdata->perm_aff		= race_table[ch->race][ch->sex].aff;
@@ -2131,6 +2133,7 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 		break;
 	    }
 	    KEY( "Cata",	temp_int,			fread_number( fp ) );
+        KEY( "Changes", ch->pcdata->last_change, fread_number( fp ) );
 	    if ( !str_cmp( word, "Clan" ) )
 	    {
 		ch->pcdata->pcclan = pcclan_data_alloc();

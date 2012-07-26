@@ -141,6 +141,7 @@ typedef struct  trigger_index_data      TRIGGER_INDEX_DATA; /* scripts */
 typedef struct  variable_data           VARIABLE_DATA; /* scripts */
 typedef struct  skill_list           	SKILL_LIST; /* mobiles */
 typedef struct 	castle_data		CASTLE_DATA; /* castle code */
+typedef struct  change_data     CHANGE_DATA;
 /*
  * Function types.
  */
@@ -955,6 +956,19 @@ struct	note_data
     char 	read_list[81];
     long	flags;
 };
+
+
+// Data structure for changes.
+struct change_data
+{
+    CHANGE_DATA *next;
+    int vnum;
+    char author[31];
+    time_t date_stamp;
+    int security;
+    char *text;
+};
+
 
 /*
  * For bit type in affect_data 
@@ -2620,6 +2634,8 @@ struct	pc_data
     char 		imm_title[31];    /* Title shown on players and most immortal who */
     int			home_timer;
     PC_CLAN_DATA *      pcclan;
+    time_t          last_change;
+    CHANGE_DATA *   change_editing;
 };
 
 
@@ -3582,6 +3598,9 @@ extern		PC_DATA		  *	pcdata_free;
 extern		GROUP_DATA	  *	group_free;
 extern		GROUP_DATA	  *	group_list;
 
+extern      CHANGE_DATA   * change_list;
+extern      CHANGE_DATA   * change_free;
+
 extern		char			bug_buf		[];
 extern		time_t			current_time;
 extern		bool			fLogAll;
@@ -3720,6 +3739,7 @@ char *	crypt		args( ( const char *key, const char *salt ) );
 #define IDEA_FILE	"../misc/ideas.txt"	/* For 'idea' */
 #define TYPO_FILE	"../misc/typos.txt"     /* For 'typo'			*/
 #define NOTE_FILE	"../notes/notes.txt"	/* For 'notes'			*/
+#define CHANGE_FILE "../misc/changes.txt"  /* For 'changes' */
 #define RACE_FILE	"../races/race.lst"		/* For the race list		*/
 #define GUILD_FILE	"../guilds/guild.lst"		/* For the guild list		*/
 #define CLAN_FILE	"../clan/clan.lst"	/* For all clan info		*/
@@ -3767,6 +3787,7 @@ extern          int                     top_area;
 extern          int                     top_ed;
 extern          long                     top_exit;
 extern          int                     top_help;
+extern          int                     top_change;
 extern		int			top_bfs_queue;
 extern		int			top_bfs_room;
 extern		int			top_world;

@@ -82,6 +82,7 @@ extern          int                     top_bhost_list;
 extern          int                     top_group_data;
 extern          int                     top_editing_data;
 extern          int                     top_note_data;
+extern          int                     top_change_data;
 extern          int                     top_bet_data;
 extern          int                     top_weather_data;
 extern          int                     top_gainer_data;
@@ -506,6 +507,31 @@ NOTE_DATA * note_data_alloc( void )
 
     return note_data;
 }
+
+CHANGE_DATA * change_data_alloc( void )
+{
+    CHANGE_DATA * change_data;
+
+    if ( change_free == NULL )
+    {
+        change_data = (CHANGE_DATA *) alloc_perm( sizeof( CHANGE_DATA ) );
+        top_change_data++;
+    }
+    else
+    {
+        change_data = change_free;
+        change_free = change_free->next;
+    }
+
+    change_data->vnum       = -1;
+    change_data->author[0]  = '\0';
+    change_data->date_stamp = current_time;
+    change_data->security   = 9;
+    change_data->text       = &str_empty[0];
+
+    return change_data;
+}
+
 BET_DATA * bet_data_alloc( void )
 {
     BET_DATA * bet_data;

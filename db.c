@@ -100,6 +100,10 @@ bool                    free_trig_list[MAX_VNUM];
 bool                    free_mob_list[MAX_VNUM];
 OBJ_INDEX_DATA *	free_obj_index;
 MOB_INDEX_DATA *	free_mob_index;
+
+CHANGE_DATA *           change_list = NULL;
+CHANGE_DATA *           change_free;
+
 sh_int			gsn_element_power[MAX_ELEMENT_TYPE][MAX_ELEMENT_POWER];
 sh_int			gsn_weapon_power[MAX_WEAPON_TYPE][MAX_WEAPON_POWER];
 sh_int                  gsn_common;
@@ -289,6 +293,7 @@ int                     top_card_data;
 long                    top_exit;
 long                    top_str_dup;
 int                     top_help;
+int                     top_change;
 int			top_bfs_queue;
 int			top_bfs_room;
 int			top_world;
@@ -327,6 +332,7 @@ int                     top_specpro_list;
 int                     top_bhost_list;
 int                     top_editing_data;
 int                     top_note_data;
+int                     top_change_data;
 int                     top_weather_data;
 int                     top_group_data;
 int                     top_gainer_data;
@@ -564,6 +570,8 @@ void boot_db( void )
 	load_finger();
         log_string("Loading Notes");
         load_notes( );
+        log_string("Loading Changes");
+        load_changes( );
 	clan_list = NULL;
         log_string("Loading Clans");
         load_clans( );
@@ -2745,7 +2753,90 @@ void load_notes( void )
     exit( 1 );
     return;
 }
- 
+
+
+void load_changes( void )
+{
+    FILE *fp;
+
+    if ( ( fp = fopen( CHANGE_FILE, "r" ) ) == NULL )
+        return;
+
+    for ( ; ; )
+    {
+        CHANGE_DATA *change;
+        char letter;
+
+        do
+        {
+            letter = getc( fp );
+            if ( feof(fp) )
+            {
+                if( fp )
+                    fclose( fp );
+                return;
+            }
+        }
+        while ( isspace(letter) );
+        ungetc( letter, fp );
+
+        change = change_data_alloc();
+
+        if ( str_cmp( fread_word( fp ), "VNum" ) )
+            break;
+        change->vnum = fread_number( fp );
+
+        if ( str_cmp( fread_word( fp ), "Author" ) )
+            break;
+        strncpy( change->author, fread_string( fp ), 30 );
+
+        if ( str_cmp( fread_word( fp ), "Stamp" ) )
+            break;
+        change->date_stamp = fread_number( fp );
+
+        if ( str_cmp( fread_word( fp ), "Sec" ) )
+            break;
+        change->security = fread_number( fp );
+
+        if ( str_cmp( fread_word( fp ), "Text" ) )
+            break;
+        change->text = fread_string( fp );
+
+        change_add( change );
+    }
+
+    strcpy( strArea, CHANGE_FILE );
+    fpArea = fp;
+    bug( "Load_changes: bad key word.", 0 );
+    exit( 1 );
+    return;
+}
+
+void save_changes( void )
+{
+    CHANGE_DATA *change;
+    FILE *fp;
+
+    if ( ( fp = fopen( CHANGE_FILE, "w" ) ) == NULL )
+    {
+        perror( CHANGE_FILE );
+    }
+    else
+    {
+        for ( change = change_list; change != NULL; change = change->next )
+        {
+            fprintf( fp, "VNum    %d\n",  change->vnum);
+            fprintf( fp, "Author  %s~\n", change->author);
+            fprintf( fp, "Stamp   %d\n",  (int) change->date_stamp);
+            fprintf( fp, "Sec     %d\n",  change->security);
+            fprintf( fp, "Text\n%s~\n",   change->text);
+        }
+        if ( fp )
+            fclose( fp );
+    }
+    return;
+}
+
 
 void load_clans( void )
 {
@@ -6705,7 +6796,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Shops    %5d  Lights     %5ld  Editing   %5d\n\r", top_shop,top_light_data, top_editing_data ); send_to_char( buf, ch );
     sprintf( buf, "Locks    %5ld  Triggers   %5ld  Groups    %5d  Quests   %d\n\r", top_lock_data,top_trigger_data,top_group_data, top_quest ); send_to_char( buf, ch );
     sprintf( buf, "Scripts  %5ld  Variables  %5ld  Ban Data  %5d  C-Quests %d\n\r", top_script_data,top_variable_data, top_ban_data,top_char_quests); send_to_char( buf, ch );
-    sprintf( buf, "Traps    %5ld  Moveables  %5ld  Descrips  %5d\n\r", top_trap_data,top_moveable_data,top_descriptor); send_to_char( buf, ch );
+    sprintf( buf, "Traps    %5ld  Moveables  %5ld  Descrips  %5d  Changes  %5d\n\r", top_trap_data,top_moveable_data,top_descriptor,top_change_data); send_to_char( buf, ch );
     sprintf( buf, "Edibles  %5ld  Logons     %5ld  Alloc MEM %5ld\n\r", top_edible_data,top_logon_data, top_alloc_mem); send_to_char( buf, ch );
     sprintf( buf, "T-Lists  %5ld  Top Trig   %5ld  PcData    %5d\n\r", top_trigger_list_data, top_trigger_index, top_pcdata); send_to_char( buf, ch );
     sprintf( buf, "SKill-L  %5ld  Str_dup    %5ld  Approve   %5ld\n\r", top_skill_list,top_str_dup, top_approve_data); send_to_char( buf, ch );

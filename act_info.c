@@ -975,11 +975,6 @@ void do_story(CHAR_DATA *ch, char *argument)
     do_help(ch,"story");
 }
 
-void do_changes(CHAR_DATA *ch, char *argument)
-{
-    do_help(ch,"changes");
-}
-
 void do_history(CHAR_DATA *ch, char *argument)
 {
      int x;
@@ -4673,7 +4668,7 @@ void do_vitals( CHAR_DATA *ch, char *argument )
         }
         else if ( !str_prefix( arg, "status") )
         {
-            sprintf( pos, get_pos_name( ch->position ) );
+            sprintf( pos, "%s", get_pos_name( ch->position ) );
             pos[0] = LOWER( pos[0] );
             
             if ( short_out )
@@ -4716,7 +4711,8 @@ void do_vitals( CHAR_DATA *ch, char *argument )
         argument = one_argument( argument, arg );
     }
     
-    if ( *buf_string(output) == '\0' )
+    char *str = buf_string(output);
+    if ( *str == '\0' )
     {
         // There is no output buffer, this catches passing no arguments,
         // passing only "-s" or passing only invalid arguments.
@@ -4729,9 +4725,372 @@ void do_vitals( CHAR_DATA *ch, char *argument )
         // The short sprints to the output buffer don't include any
         // newlines, so add a trailing one.
         add_buf(output, "\n\r");
+        str = buf_string(output);
     }
     
-    page_to_char(buf_string(output), ch);
+    page_to_char(str, ch);
     free_buf(output);
+    return;
+}
+
+
+// Support functions for do_changes
+
+void change_attach( CHAR_DATA *ch )
+{
+    CHANGE_DATA *change;
+
+    if ( ch->pcdata->change_editing != NULL )
+        return;
+
+    change = change_data_alloc();
+
+    change->next     = NULL;
+    change->text     = &str_empty[0];
+    strncpy( change->author, ch->name, 30 );
+
+    ch->pcdata->change_editing = change;
+    return;
+}
+
+void change_add( CHANGE_DATA *change )
+{
+    CHANGE_DATA * prev;
+    
+    if ( change->vnum < 1 )
+        change->vnum = ++top_change;
+    else
+        top_change = UMAX( change->vnum, top_change );
+
+    if ( change_list == NULL )
+    {
+        // This is the first change, woop
+        change_list = change;
+    }
+    else if ( change->date_stamp > change_list->date_stamp )
+    {
+        // This is the most recent change, so just put it at the top
+        change->next = change_list;
+        change_list = change;
+    }
+    else
+    {
+        // There is a newer change at the top of the list, find our spot
+        for ( prev = change_list; prev != NULL ; prev = prev->next )
+        {
+            if ( prev->next == NULL )
+            {
+                // We hit the end, so just stick this on there
+                prev->next = change;
+                break;
+            }
+            else if ( change->date_stamp > prev->next->date_stamp )
+            {
+                // We found the next one that is older than this
+                change->next = prev->next;
+                prev->next = change;
+                break;
+            }
+        }
+    }
+    
+    save_changes();
+    return;
+}
+
+void change_remove( CHANGE_DATA *change )
+{
+    CHANGE_DATA *prev;
+    
+    if ( change == change_list )
+        change_list = change->next;
+    else
+    {
+        for ( prev = change_list; prev != NULL; prev = prev->next )
+        {
+            if ( prev->next == change )
+            break;
+        }
+
+        if ( prev == NULL )
+        {
+            bug( "Change_remove: change not found.", 0 );
+            return;
+        }
+
+        prev->next = change->next;
+    }
+
+    change->next = change_free;
+    change_free = change;
+
+    save_changes();
+    return;
+}
+
+void check_new_changes( CHAR_DATA *ch )
+{
+    CHANGE_DATA *change;
+
+    for ( change = change_list ; change != NULL ; change = change->next )
+    {
+        if ( ch->pcdata->last_change < change->date_stamp
+        && ch->pcdata->security <= change->security )
+        {
+            send_to_char( "`YThere are new changes! Type 'changes' to view them.\n\r", ch );
+            return;
+        }
+    }
+}
+
+void lines_to_spaces( char *str )
+{
+    while (*str++ != '\0')
+    {
+        if (*str == '\n')
+            *str = ' ';
+        else if (*str == '\r')
+            *str = ' ';
+    }
+}
+
+void do_changes( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH];
+    char buf[MAX_BUF];
+    char stamp[22];
+    int number;
+    CHANGE_DATA *change;
+    DESCRIPTOR_DATA *d;
+    BUFFER *output;
+    time_t new_time = 0;
+
+    if ( IS_NPC(ch) )
+        return;
+
+    argument = one_argument( argument, arg );
+
+    if ( arg[0] == '\0' || !str_prefix( arg, "all" ) || !IS_IMMORTAL( ch ) )
+    {
+        // Read new or all changes, paged, most recent first
+        if ( change_list == NULL )
+        {
+            send_to_char( "No changes posted.\n\r", ch );
+            return;
+        }
+
+        output = new_buf();
+        bool first = TRUE;
+        for ( change = change_list ; change != NULL ; change = change->next )
+        {
+            if ( ( ch->pcdata->security <= change->security )
+              && ( ch->pcdata->last_change < change->date_stamp
+                || ( arg[0] != '\0' && !str_prefix( arg, "all" ) ) ) )
+            {
+                // We have permission to view this and either it is newer than
+                //  we've seen or we are listing all changes
+                if ( !first )
+                    add_buf( output, "\n\r" );
+                else
+                    first = FALSE;
+                strftime( stamp, 22, "%a %b %d %H:%M %Y", localtime( &change->date_stamp ) );
+                sprintf( buf, "%s by %s:\n\r", stamp, change->author );
+                add_buf( output, buf );
+                add_buf( output, change->text );
+                // If this is the first visible one, we want it to be
+                //  their new last_change, but we don't want to change
+                //  it until we've compared the rest of the list
+                if ( !new_time )
+                    new_time = change->date_stamp;
+            }
+            else if ( ch->pcdata->last_change >= change->date_stamp
+                   && str_prefix( arg, "all" ) )
+                // We've seen this before, no need to check the rest
+                break;
+        }
+
+        char *str = buf_string(output);
+        if ( *str == '\0' )
+        {
+            if ( arg[0] == '\0' )
+                // Either there weren't any new changes, or
+                //  they did not have the security to view them
+                send_to_char( "No new changes. Try '`Wchanges all`w'.\n\r", ch );
+            else
+                // If we got here, then there were some changes, but
+                //  they did not have the security to view them
+                send_to_char( "No changes posted.\n\r", ch );
+        }
+        else
+        {
+            send_to_char( "`Y", ch );
+            page_to_char( str, ch );
+            send_to_char( "`w", ch );
+            ch->pcdata->last_change = new_time;
+        }
+
+        free_buf( output );
+        return;
+    }
+
+    // Immortal only arguments past this point
+
+    if ( !str_prefix( arg, "add" ) )
+    {
+        if ( ch->pcdata->change_editing != NULL )
+        {
+            send_to_char( "You are already editing changes, either '`Ypost`w' or '`Rdiscard`w' them.\n\r", ch );
+            return;
+        }
+
+        change_attach( ch );
+        do_changes( ch, "edit" );
+    }
+    else if ( !str_prefix( arg, "show" ) )
+    {
+        change = ch->pcdata->change_editing;
+
+        if ( change == NULL )
+        {
+            send_to_char( "You are not editing changes, try '`Yadd`w'.\n\r", ch );
+            return;
+        }
+
+        output = new_buf();
+        strftime( stamp, 22, "%a %b %d %H:%M %Y", localtime( &change->date_stamp ) );
+        sprintf( buf, "%s by %s:\n\r", stamp, change->author );
+        add_buf( output, buf );
+        add_buf( output, change->text );
+        page_to_char( buf_string( output ), ch );
+        free_buf( output );
+    }
+    else if ( !str_prefix( arg, "edit" ) )
+    {
+        change = ch->pcdata->change_editing;
+
+        if ( change == NULL )
+        {
+            send_to_char( "You are not editing changes, try '`Yadd`w'.\n\r", ch );
+            return;
+        }
+
+        send_to_char( "`Y", ch );
+        ch->desc->connected = CON_EDITING;
+        string_append( ch, &change->text );
+    }
+    else if ( !str_prefix( arg, "post" ) )
+    {
+        change = ch->pcdata->change_editing;
+
+        if ( change == NULL )
+        {
+            send_to_char( "You are not editing changes, try `Yadd`w.\n\r", ch );
+            return;
+        }
+
+        if ( is_number( argument ) )
+        {
+            // A minimum security these changes are visible to
+            number = atoi( argument );
+            if ( number < 1 || number > 9 )
+            {
+                send_to_char( "Valid security level is `W1-9`w.\n\r", ch );
+                return;
+            }
+            change->security = number;
+        }
+        // If no security was provided, it defaults to 9 (everyone)
+
+        // If the author's last viewed change was the latest one,
+        //  just update it so they don't need to view their own
+        CHANGE_DATA *last;
+        for ( last = change_list ; last != NULL ; last = last->next )
+            if ( ch->pcdata->security <= last->security )
+                break;
+        if ( last == NULL || ch->pcdata->last_change >= last->date_stamp )
+        {
+            ch->pcdata->last_change = change->date_stamp;
+        }
+
+        change_add( change );
+        ch->pcdata->change_editing = NULL;
+        send_to_char( "Changes posted.\n\r", ch );
+
+        // Notify players that there are new changes
+        for ( d = descriptor_list ; d != NULL ; d = d->next )
+        {
+            if ( d->connected <= CON_PLAYING )
+                check_new_changes( d->character );
+        }
+    }
+    else if ( !str_prefix( arg, "discard" ) )
+    {
+        change = ch->pcdata->change_editing;
+
+        if ( change == NULL )
+        {
+            send_to_char( "You are not editing changes.\n\r", ch );
+            return;
+        }
+
+        change->next = change_free;
+        change_free = change;
+        ch->pcdata->change_editing = NULL;
+        send_to_char( "Changes discarded.\n\r", ch );
+    }
+    else if ( !str_prefix( arg, "list" ) )
+    {
+        if ( change_list == NULL )
+        {
+            send_to_char( "No changes to list.\n\r", ch );
+            return;
+        }
+
+        char sum[31]; sum[30] = '\0';
+        char auth[11]; auth[10] = '\0';
+        output = new_buf();
+        // I don't really care that these will be in reverse vnum order,
+        //  chances are if you want to delete one it will be recent
+        for ( change = change_list ; change != NULL ; change = change->next )
+        {
+            strncpy( sum, change->text, 30 );
+            lines_to_spaces( (char *)sum );
+            strncpy( auth, change->author, 10 );
+            strftime( stamp, 22, "%a %b %d %H:%M %Y", localtime( &change->date_stamp ) );
+            sprintf( buf, "[%3d] %s by %-10s [%d]: %s\n\r",
+                     change->vnum, stamp, auth, change->security, sum );
+            add_buf( output, buf );
+        }
+
+        page_to_char( buf_string( output ), ch );
+        free_buf( output );
+    }
+    else if ( !str_prefix( arg, "remove" ) )
+    {
+        if ( !is_number( argument ) )
+        {
+            send_to_char( "Which change do you want to remove?\n\r", ch );
+            return;
+        }
+
+        number = atoi( argument );
+        for ( change = change_list ; change != NULL ; change = change->next )
+        {
+            if ( change->vnum == number )
+            {
+                change_remove( change );
+                send_to_char( "Change removed.\n\r", ch );
+                return;
+            }
+        }
+        
+        // Ran out of changes
+        send_to_char( "Change not found.\n\r", ch );
+    }
+    else
+    {
+        send_to_char( "Bad argument. Try '`Whelp changes`w'.\n\r", ch );
+    }
+    
     return;
 }

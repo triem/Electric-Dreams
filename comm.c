@@ -2711,13 +2711,16 @@ case CON_DEFAULT_COLOR:
 	if ( ch->level > 1 ) /* Creation OCC */
 	{
 	if (notes == 1)
-	    send_to_char("\n\rYou have one new note waiting.\n\r",ch);
+	    send_to_char("`WYou have `Yone`W new note waiting.`w\n\r",ch);
 
 	else if (notes > 1)
 	{
-	    sprintf(buf,"\n\rYou have %d new notes waiting.\n\r",notes);
+	    sprintf(buf,"`WYou have `Y%d`W new notes waiting.`w\n\r",notes);
 	    send_to_char(buf,ch);
 	}
+	
+        // Check for new changes posted
+        check_new_changes( ch );
 	}
 
 	break;

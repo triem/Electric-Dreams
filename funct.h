@@ -106,7 +106,6 @@ void 	do_quest	args( (CHAR_DATA *ch, char *argument) );
 void 	do_imotd	args( (CHAR_DATA *ch, char *argument) );
 void 	do_rules	args( (CHAR_DATA *ch, char *argument) );
 void 	do_story	args( (CHAR_DATA *ch, char *argument) );
-void 	do_changes	args( (CHAR_DATA *ch, char *argument) );
 void 	do_history	args( (CHAR_DATA *ch, char *argument) );
 void 	do_autolist	args( (CHAR_DATA *ch, char *argument) );
 void 	do_autoassist	args( (CHAR_DATA *ch, char *argument) );
@@ -167,7 +166,12 @@ bool 	check_blind	args( ( CHAR_DATA *ch ) );
 void 	check_sensitive	args( ( CHAR_DATA *ch ) );
 CHAR_QUESTS *get_char_quest args( ( CHAR_DATA *ch, int quest_number ) );
 void    get_clanrank args( ( CHAR_DATA *ch, char *argument) );
-void    do_vitals    args( ( CHAR_DATA *ch, char *argument ) );
+void    do_vitals   args( ( CHAR_DATA *ch, char *argument ) );
+void    change_attach   args( ( CHAR_DATA *ch ) );
+void    change_add  args( ( CHANGE_DATA *change ) );
+void    change_remove   args( ( CHANGE_DATA *change ) );
+void    check_new_changes   args( ( CHAR_DATA *ch ) );
+void    do_changes  args( ( CHAR_DATA *ch, char *argument ) );
 
 /*
  * forge.c
@@ -553,6 +557,8 @@ void 	load_rooms_new	args( ( AREA_DATA *pArea ) );
 void 	load_shops_new	args( ( AREA_DATA *pArea ) );
 void 	load_specials	args( ( FILE *fp ) );
 void 	load_notes	args( ( void ) );
+void    load_changes args( ( void ) );
+void    save_changes args( ( void ) );
 void 	load_clans	args( ( void ) );
 void 	imp_log_string	args( ( const char *str ) );
 void 	load_counter	args( ( void ) );
@@ -757,6 +763,7 @@ FINGER_DATA * finger_alloc( void );
 ROOM_INDEX_DATA * gate_leads_to( GATE_DATA * gate );
 BFS_QUEUE * alloc_bfs_queue( void );
 BFS_ROOM * alloc_bfs_room( void );
+CHANGE_DATA * change_data_alloc( void );
 long	spell_affect_bit args( (int sn) ); 
 long	spell_affect_bit_2 args( (int sn) ); 
 int 	check_immune	args( (CHAR_DATA *ch, int dam_type) );

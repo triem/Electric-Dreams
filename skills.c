@@ -1058,7 +1058,7 @@ void check_hp_improve( CHAR_DATA *victim, int tot_damage )
 void check_mana_improve( CHAR_DATA *ch, int sn )
 {
     int i;
-    int num,temp;
+    int num;
     long value, value2;
     char buf[MAX_INPUT_LENGTH];
     bool found = FALSE;
