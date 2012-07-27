@@ -1063,9 +1063,6 @@ void set_position( CHAR_DATA * ch, int position )
 
 void check_regen( CHAR_DATA * ch )
 {
-    if ( ++gain_stat_offset >= MAX_GAIN_STATS )
-        gain_stat_offset = 0;
-
     if ( ch->position >= POS_DEAD )
     {
         hit_gain( ch );
@@ -1080,7 +1077,7 @@ void hit_gain( CHAR_DATA *ch )
 {
     int gain;
     int number;
-    
+
     // If we're all full up we don't even need to go on
     if ( ch->hit >= ch->max_hit )
         return;
@@ -3091,9 +3088,22 @@ void char_update( void )
 void regen_update( void )
 {   
     CHAR_DATA *ch;
-    
+
+    if ( ++gain_stat_offset >= MAX_GAIN_STATS )
+        gain_stat_offset = 0;
+
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
+        if ( !IS_NPC( ch ) )
+        {
+            // Zero out their gain stat, so that if they don't end
+            //  up gain anything, the old stat won't skew averages
+            ch->pcdata->hit_gains[gain_stat_offset] = 0;
+            for ( int type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
+                ch->pcdata->mana_gains[type][gain_stat_offset] = 0;
+            ch->pcdata->move_gains[gain_stat_offset] = 0;
+        }
+
         if (ch->timer >= 12 )
             // They are in the void
             continue;
