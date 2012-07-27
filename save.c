@@ -1793,7 +1793,7 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
     ch->pcdata->corpse			= NULL;
     ch->pcdata->debt			= NULL;
     ch->pcdata->read_notes		= NULL;
-    ch->pcdata->last_change     = current_time;
+    ch->pcdata->last_change     = 0;
     ch->pcdata->perm_hit		= 0;
     ch->pcdata->perm_move		= 0;
     ch->pcdata->perm_aff		= race_table[ch->race][ch->sex].aff;

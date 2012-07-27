@@ -3997,10 +3997,7 @@ void do_affects(CHAR_DATA *ch, char *argument )
 	for ( paf = ch->affected; paf != NULL; paf = paf->next )
 	{
 	    if (paf_last != NULL && paf->type == paf_last->type)
-		if (ch->level >= 30)
 		    sprintf( buf, "                      ");
-		else
-		    continue;
 	    else
 	    { 
 		if ( paf->type == -2 )
@@ -4011,8 +4008,6 @@ void do_affects(CHAR_DATA *ch, char *argument )
 
 	    send_to_char( buf, ch );
 
-	    if ( ch->level >= 30 )
-	    {
 		if (paf->bit_type > 0 && paf->modifier != 0)
 		sprintf( buf,
 		    ": modifies %s to %s by %d ",
@@ -4035,7 +4030,6 @@ void do_affects(CHAR_DATA *ch, char *argument )
 		else
 		    sprintf( buf, "for %d hours", paf->duration + 1);
 		send_to_char( buf, ch );
-	    }
 
 	    send_to_char( "\n\r", ch );
 	    paf_last = paf;
