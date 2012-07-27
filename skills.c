@@ -629,8 +629,10 @@ void do_spells(CHAR_DATA *ch, char *argument)
 {
     int sn,x;
     bool found = FALSE;
+    char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     BUFFER * output;
+
     if (IS_NPC(ch))
     {
 	SKILL_LIST * skills;
@@ -654,7 +656,9 @@ void do_spells(CHAR_DATA *ch, char *argument)
 
     /* initilize data */
     output = new_buf();
+    argument = one_argument( argument, arg );
     x = 0;
+
     for (sn = 1; sn < MAX_SKILL; sn++)
     {
       	if (skill_table[sn].name == NULL )
@@ -662,10 +666,11 @@ void do_spells(CHAR_DATA *ch, char *argument)
 
     if (skill_table[sn].spell_fun != spell_null)
     {
-
-
         if (ch->pcdata->learned[sn] > 0 || ch->pcdata->skill_mod[sn] > 0 )
-	{
+        {
+            if ( arg[0] != '0' && str_prefix( arg, skill_table[sn].name ) )
+                continue;
+
         found = TRUE;
 	  x++;
 	  if ( skill_table[ sn ].group == 5 )
@@ -699,13 +704,19 @@ void do_spells(CHAR_DATA *ch, char *argument)
 
     if (!found)
     {
-      send_to_char("You know no spells.\n\r",ch);
+      if ( arg[0] != '0' )
+            send_to_char( "Spell not found.\n\r", ch );
+        else
+            send_to_char("You know no spells.\n\r",ch);
       free_buf(output);
       return;
     }
     else
     {
-    send_to_char("Name               Learned  Mod   Name               Learned  Mod\n\r",ch); 
+    send_to_char("Name               Learned  Mod",ch); 
+    if ( x > 1 )
+        send_to_char( "   Name               Learned  Mod", ch );
+    send_to_char( "\n\r", ch );
     page_to_char(buf_string(output),ch);
     free_buf(output);
     }
@@ -716,8 +727,10 @@ void do_slist(CHAR_DATA *ch, char *argument)
 {
     int sn,lev,x,y;
     bool found = FALSE;
+    char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     BUFFER * output;
+
     if (IS_NPC(ch))
     {
 	SKILL_LIST * skills;
@@ -741,7 +754,9 @@ void do_slist(CHAR_DATA *ch, char *argument)
 
     /* initilize data */
     output = new_buf();
+    argument = one_argument( argument, arg );
     x = 0;
+    
     for ( y = 1; y < MAX_LEVEL; y++)
     {
     for (sn = 1; sn < MAX_SKILL; sn++)
@@ -753,6 +768,9 @@ void do_slist(CHAR_DATA *ch, char *argument)
     {
 	if ( get_skill( ch, sn ) <= 0 && ( get_skill_level( ch, sn ) > MAX_LEVEL || get_skill_level( ch, sn ) < 0 ) ) 
 	    continue;
+
+        if ( arg[0] != '0' && str_prefix( arg, skill_table[sn].name ) )
+            continue;
 
         found = TRUE;
         lev = get_skill_level( ch, sn);
@@ -777,13 +795,19 @@ void do_slist(CHAR_DATA *ch, char *argument)
 
     if (!found)
     {
-      send_to_char("You know no skills.\n\r",ch);
+      if ( arg[0] != '0' )
+            send_to_char( "Skill not found.\n\r", ch );
+        else
+            send_to_char("You know no skills.\n\r",ch);
       free_buf(output);
       return;
     }
     else
     {
-    send_to_char("Lv  Name                   Lv  Name               \n\r",ch); 
+    send_to_char("Lv  Name",ch);
+    if ( x > 1 )
+        send_to_char( "                   Lv  Name", ch );
+    send_to_char( "\n\r", ch );
     page_to_char(buf_string(output),ch);
     free_buf(output);
     }
@@ -794,8 +818,10 @@ void do_skills(CHAR_DATA *ch, char *argument)
 {
     int sn,lev,x,y;
     bool found = FALSE;
+    char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     BUFFER * output;
+
     if (IS_NPC(ch))
     {
 	SKILL_LIST * skills;
@@ -819,7 +845,9 @@ void do_skills(CHAR_DATA *ch, char *argument)
 
     /* initilize data */
     output = new_buf();
+    argument = one_argument( argument, arg );
     x = 0;
+    
     for ( y = 1; y < MAX_LEVEL; y++)
     {
     for (sn = 1; sn < MAX_SKILL; sn++)
@@ -831,6 +859,9 @@ void do_skills(CHAR_DATA *ch, char *argument)
     {
 	if ( get_skill_level( ch, sn ) > MAX_LEVEL || get_skill_level( ch, sn ) < 0 )
 	    continue;
+    
+        if ( arg[0] != '0' && str_prefix( arg, skill_table[sn].name ) )
+            continue;
 
         found = TRUE;
         lev = get_skill_level( ch, sn);
@@ -872,13 +903,19 @@ void do_skills(CHAR_DATA *ch, char *argument)
     /* return results */
     if (!found)
     {
-      send_to_char("You know no skills.\n\r",ch);
-      free_buf(output);
-      return;
+        if ( arg[0] != '0' )
+            send_to_char( "Skill not found.\n\r", ch );
+        else
+            send_to_char( "You know no skills.\n\r", ch );
+        free_buf(output);
+        return;
     }
     else
     {
-    	send_to_char("Lv  Name               Learned  Mod   Lv  Name               Learned  Mod\n\r",ch); 
+        send_to_char( "Lv  Name               Learned  Mod", ch );
+        if ( x > 1 )
+            send_to_char( "   Lv  Name               Learned  Mod", ch );
+        send_to_char( "\n\r", ch );
     	page_to_char(buf_string(output),ch);
     	free_buf(output);
     }
