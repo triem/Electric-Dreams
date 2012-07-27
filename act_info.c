@@ -2069,18 +2069,15 @@ void do_exits( CHAR_DATA *ch, char *argument )
 	      IS_SET(ch->plr, PLR_HOLYLIGHT) ) )
 	{
 	    found = TRUE;
-	    if ( fAuto )
-	    {
-		if (!IS_SET(pexit->exit_info,EX_CLOSED))
-                 {strcat( buf, " `g" );
-		  strcat( buf, dir_name[door] );}
-	    }
-	    else if ( fMoveable )
-	    {
-		if (!IS_SET(pexit->exit_info,EX_CLOSED))
-                 {strcat( buf, " `g" );
-		  strcat( buf, dir_name[door] );}
-	    }
+        if ( fAuto || fMoveable )
+        {
+            strcat( buf, " `g" );
+            strcat( buf, dir_name[door] );
+            if ( IS_SET( pexit->exit_info, EX_HIDDEN ) )
+                strcat( buf, "(h)" );
+            if ( IS_SET( pexit->exit_info, EX_CLOSED ) )
+                strcat( buf, "(c)" );
+        }
 	    else
 	    {
 		char buf1[MAX_INPUT_LENGTH];
