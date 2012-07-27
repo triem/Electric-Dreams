@@ -4862,6 +4862,8 @@ void do_vitals( CHAR_DATA *ch, char *argument )
         add_buf(output, "Syntax: vitals [-s] (stat) ...\n\r\n\r");
         add_buf(output, "Stats: level hp mv fire water earth wind spirit\n\r");
         add_buf(output, "  ac pracs str dex con int wis cha hr dr status\n\r");
+        add_buf(output, "  hitgain movegain firegain watergain earthgain\n\r");
+        add_buf(output, "  windgain spiritgain\n\r");
     }
     else if ( short_out )
     {
