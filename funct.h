@@ -394,6 +394,7 @@ void 	do_oload	args( ( CHAR_DATA *ch, char *argument ) );
 void 	do_purge_area	args( ( CHAR_DATA *ch, char *argument ) );
 void 	do_purge	args( ( CHAR_DATA *ch, char *argument ) );
 void 	do_advance	args( ( CHAR_DATA *ch, char *argument ) );
+void    restore_character   args( ( CHAR_DATA *ch ) );
 void 	do_restore	args( ( CHAR_DATA *ch, char *argument ) );
 void 	do_freeze	args( ( CHAR_DATA *ch, char *argument ) );
 void 	do_log		args( ( CHAR_DATA *ch, char *argument ) );

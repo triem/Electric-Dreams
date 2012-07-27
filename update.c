@@ -1025,6 +1025,8 @@ void gain_exp( CHAR_DATA *ch, int gain )
     if ( levels < 1 )
 	return;
 
+    restore_character( ch );
+
     if ( levels < 2 )
     {
     	gain_prac += wis_app[get_curr_stat(ch, STAT_WIS)].practice + number_range(0, 3);

@@ -4704,136 +4704,84 @@ void do_advance( CHAR_DATA *ch, char *argument )
 }
 
 
-
-
-void do_restore( CHAR_DATA *ch, char *argument )
+void restore_character( CHAR_DATA *ch )
 {
-    char arg[MAX_INPUT_LENGTH];
-    char arg1[MAX_INPUT_LENGTH];
-    CHAR_DATA *victim;
-    CHAR_DATA *vch;
-    DESCRIPTOR_DATA *d;
     AFFECT_DATA *af;
     AFFECT_DATA *af_next;
     int i;
 
+    affect_strip( ch, gsn_plague );
+    affect_strip( ch, gsn_poison );
+    affect_strip( ch, gsn_blinding_light );
+    affect_strip( ch, gsn_sand_storm );
+    affect_strip( ch, gsn_sleep );
+    affect_strip( ch, gsn_curse );
+
+    for ( af = ch->affected; af != NULL; af = af_next )
+    {
+        af_next = af->next;
+        if ( af->type == -2 )
+            affect_remove( ch, af );
+    }
+
+    //if (!IS_NPC(vch) )
+    //{
+    //    vch->affected_by = vch->pcdata->perm_aff; 
+    //    vch->affected_by_2 = vch->pcdata->perm_aff_2; 
+    //}
+
+    ch->hit = ch->max_hit;
+    for( i = 0 ; i < MAX_ELEMENT_TYPE ; i++ )
+        ch->mana[i] = ch->max_mana[i];
+    ch->move = ch->max_move;
+    update_pos( ch );
+}
+
+void do_restore( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH];
+    char buf[MAX_STRING_LENGTH];
+    CHAR_DATA *victim;
+    DESCRIPTOR_DATA *d;
+
     argument = one_argument( argument, arg );
-    one_argument( argument, arg1 );
+
     if (arg[0] == '\0' || !str_cmp(arg,"room"))
     {
-    /* cure room */
-    	
-        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        // Restore all characters in the current room (includes NPCs)
+        for ( victim = ch->in_room->people ; victim != NULL ; victim = victim->next_in_room )
         {
-            affect_strip(vch,gsn_plague);
-            affect_strip(vch,gsn_poison);
-            affect_strip(vch,gsn_blinding_light);
-            affect_strip(vch,gsn_sand_storm);
-            affect_strip(vch,gsn_sleep);
-            affect_strip(vch,gsn_curse);
-
-	    for ( af = vch->affected; af != NULL; af = af_next )
-	    {
-		af_next = af->next;
-		if (af->type == -2 )
-		  affect_remove( vch, af);
-	    }
-	/*
-	    if (!IS_NPC(vch) )
-	    {
-            vch->affected_by = vch->pcdata->perm_aff; 
-            vch->affected_by_2 = vch->pcdata->perm_aff_2; 
-	    }
-	*/
-            vch->hit 	= vch->max_hit;
-	    for( i = 0 ; i < MAX_ELEMENT_TYPE ; i++ )
-                vch->mana[i]	= vch->max_mana[i];
-            vch->move	= vch->max_move;
-            update_pos( vch);
-            act("$n has restored you.",ch,NULL,vch,TO_VICT);
-        
-
+            restore_character( victim );
+            act( "$n has restored you.", ch, NULL, victim, TO_VICT );
         }
-        send_to_char("Room restored.\n\r",ch);
+        send_to_char( "Room restored.\n\r", ch );
         return;
-
     }
-    
     if ( IS_OPTIVISION(ch) && !str_cmp(arg,"all"))
     {
-    /* cure all */
-    	
-        for (d = descriptor_list; d != NULL; d = d->next)
+        // Restore all players globally (does not include NPCs)
+        for ( d = descriptor_list ; d != NULL ; d = d->next )
         {
-	    victim = d->character;
+            victim = d->character;
+            if ( victim == NULL || IS_NPC( victim ) )
+                continue;
 
-	    if (victim == NULL || IS_NPC(victim))
-		continue;
-                
-            affect_strip(victim,gsn_plague);
-            affect_strip(victim,gsn_poison);
-            affect_strip(victim,gsn_blinding_light);
-            affect_strip(victim,gsn_sand_storm);
-            affect_strip(victim,gsn_sleep);
-            affect_strip(victim,gsn_curse);
-	    for ( af = victim->affected; af != NULL; af = af_next )
-	    {
-		af_next = af->next;
-		if (af->type == -2 )
-		  affect_remove( victim, af);
-	    }
-	/*
-	    if (!IS_NPC(victim ) )
-	    {
-            victim->affected_by = victim->pcdata->perm_aff; 
-            victim->affected_by_2 = victim->pcdata->perm_aff_2; 
-	    }
-	*/
-            
-            victim->hit 	= victim->max_hit;
-	    for ( i = 0 ; i < MAX_ELEMENT_TYPE ; i++ )
-                victim->mana[i]	= victim->max_mana[i];
-            victim->move	= victim->max_move;
-            update_pos( victim);
-	    if (victim->in_room != NULL)
-                act("$n has restored you.",ch,NULL,victim,TO_VICT);
+            restore_character( victim );
+            if ( victim->in_room != NULL )
+                act( "$n has restored you.", ch, NULL, victim, TO_VICT );
         }
-	send_to_char("All active players restored.\n\r",ch);
-	return;
-	sprintf(imp_buf, "%s restored all active players\n\r",ch->name);
-	info_channel(ch,imp_buf,INFOACT_IMP_LOG);
+        send_to_char( "All active players restored.\n\r", ch );
+        sprintf( buf, "%s restored all active players\n\r", ch->name );
+        info_channel( ch, buf, INFOACT_IMP_LOG );
+        return;
     }
-
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
     {
-	send_to_char( "They aren't here.\n\r", ch );
-	return;
+        send_to_char( "They aren't here.\n\r", ch );
+        return;
     }
 
-    affect_strip(victim,gsn_plague);
-    affect_strip(victim,gsn_poison);
-    affect_strip(victim,gsn_blinding_light);
-    affect_strip(victim,gsn_sand_storm);
-    affect_strip(victim,gsn_sleep);
-    affect_strip(victim,gsn_curse);
-    for ( af = victim->affected; af != NULL; af = af_next )
-    {
-	af_next = af->next;
-	if (af->type == -2 )
-	  affect_remove( victim, af);
-    }
-/*
-    if (!IS_NPC(victim ) )
-    {
-    victim->affected_by = victim->pcdata->perm_aff; 
-    victim->affected_by_2 = victim->pcdata->perm_aff_2; 
-    }
- */
-    victim->hit  = victim->max_hit;
-    for ( i  = 0 ; i < MAX_ELEMENT_TYPE ; i++ )
-        victim->mana[i] = victim->max_mana[i];
-    victim->move = victim->max_move;
-    update_pos( victim );
+    restore_character( victim );
     act( "$n has restored you.", ch, NULL, victim, TO_VICT );
     send_to_char( "Ok.\n\r", ch );
     return;
