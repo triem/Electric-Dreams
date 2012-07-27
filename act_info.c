@@ -4490,7 +4490,11 @@ void do_vitals( CHAR_DATA *ch, char *argument )
     BUFFER *output;
     bool short_out = FALSE;
     bool multi = FALSE;
-    
+    int i, counted, avg = 0;
+
+    if ( IS_NPC(ch) )
+        return;
+
     output = new_buf();
     argument = one_argument( argument, arg );
     
@@ -4524,12 +4528,48 @@ void do_vitals( CHAR_DATA *ch, char *argument )
                 sprintf( buf, "You have %d hit points.\n\r", ch->hit );
             add_buf(output, buf);
         }
+        else if ( !str_prefix( arg, "hitgain") || !str_prefix( arg, "hg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->hit_gains[i] > 0 )
+                {
+                    avg += ch->pcdata->hit_gains[i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t hp", avg );
+            else
+                sprintf( buf, "You average %d hit points per tick.\n\r", avg );
+            add_buf(output, buf);
+        }
         else if ( !str_prefix( arg, "moves") || !strcasecmp( arg, "mv") )
         {
             if ( short_out )
                 sprintf( buf, "%d move", ch->move );
             else
                 sprintf( buf, "You have %d move.\n\r", ch->move );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "movegain") || !strcasecmp( arg, "mg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->move_gains[i] > 0 )
+                {
+                    avg += ch->pcdata->move_gains[i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t move", avg );
+            else
+                sprintf( buf, "You average %d moves per tick.\n\r", avg );
             add_buf(output, buf);
         }
         else if ( !str_prefix( arg, "fire") )
@@ -4540,12 +4580,48 @@ void do_vitals( CHAR_DATA *ch, char *argument )
                 sprintf( buf, "You have %d fire mana.\n\r", ch->mana[0] );
             add_buf(output, buf);
         }
+        else if ( !str_prefix( arg, "firegain") || !strcasecmp( arg, "fg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->mana_gains[0][i] > 0 )
+                {
+                    avg += ch->pcdata->mana_gains[0][i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t fire", avg );
+            else
+                sprintf( buf, "You average %d fire mana per tick.\n\r", avg );
+            add_buf(output, buf);
+        }
         else if ( !str_prefix( arg, "water") )
         {
             if ( short_out )
                 sprintf( buf, "%d water", ch->mana[1] );
             else
                 sprintf( buf, "You have %d water mana.\n\r", ch->mana[1] );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "watergain") || !strcasecmp( arg, "wg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->mana_gains[1][i] > 0 )
+                {
+                    avg += ch->pcdata->mana_gains[1][i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t water", avg );
+            else
+                sprintf( buf, "You average %d water mana per tick.\n\r", avg );
             add_buf(output, buf);
         }
         else if ( !str_prefix( arg, "earth") )
@@ -4556,6 +4632,24 @@ void do_vitals( CHAR_DATA *ch, char *argument )
                 sprintf( buf, "You have %d earth mana.\n\r", ch->mana[2] );
             add_buf(output, buf);
         }
+        else if ( !str_prefix( arg, "earthgain") || !strcasecmp( arg, "eg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->mana_gains[2][i] > 0 )
+                {
+                    avg += ch->pcdata->mana_gains[2][i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t earth", avg );
+            else
+                sprintf( buf, "You average %d earth mana per tick.\n\r", avg );
+            add_buf(output, buf);
+        }
         else if ( !str_prefix( arg, "wind") )
         {
             if ( short_out )
@@ -4564,12 +4658,48 @@ void do_vitals( CHAR_DATA *ch, char *argument )
                 sprintf( buf, "You have %d wind mana.\n\r", ch->mana[3] );
             add_buf(output, buf);
         }
+        else if ( !str_prefix( arg, "windgain") || !strcasecmp( arg, "wig") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->mana_gains[3][i] > 0 )
+                {
+                    avg += ch->pcdata->mana_gains[3][i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t wind", avg );
+            else
+                sprintf( buf, "You average %d wind mana per tick.\n\r", avg );
+            add_buf(output, buf);
+        }
         else if ( !str_prefix( arg, "spirit") )
         {
             if ( short_out )
                 sprintf( buf, "%d spirit", ch->mana[4] );
             else
                 sprintf( buf, "You have %d spirit mana.\n\r", ch->mana[4] );
+            add_buf(output, buf);
+        }
+        else if ( !str_prefix( arg, "spiritgain") || !strcasecmp( arg, "sg") )
+        {
+            avg = counted = 0;
+            for ( i = 0 ; i < MAX_GAIN_STATS ; i++ )
+                if ( ch->pcdata->mana_gains[4][i] > 0 )
+                {
+                    avg += ch->pcdata->mana_gains[4][i];
+                    counted++;
+                }
+            if ( counted > 0 )
+                avg /= counted;
+
+            if ( short_out )
+                sprintf( buf, "%d/t spirit", avg );
+            else
+                sprintf( buf, "You average %d spirit mana per tick.\n\r", avg );
             add_buf(output, buf);
         }
         else if ( !str_prefix( arg, "armor") || !str_prefix( arg, "ac") )

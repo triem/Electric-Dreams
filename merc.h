@@ -228,6 +228,7 @@ extern int	per_cpu_usage[];
 #define MAX_GROUP			21
 #define MAX_IN_GROUP			30
 #define MAX_SCAN_ITEMS      5
+#define MAX_GAIN_STATS      5
 
 #define PULSE_PER_SECOND		4
 #define PULSE_VIOLENCE			( 4 * PULSE_PER_SECOND)
@@ -2636,6 +2637,9 @@ struct	pc_data
     PC_CLAN_DATA *      pcclan;
     time_t          last_change;
     CHANGE_DATA *   change_editing;
+    sh_int          hit_gains[MAX_GAIN_STATS];
+    sh_int          mana_gains[MAX_ELEMENT_TYPE][MAX_GAIN_STATS];
+    sh_int          move_gains[MAX_GAIN_STATS];
 };
 
 

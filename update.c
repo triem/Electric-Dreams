@@ -1051,6 +1051,8 @@ void gain_exp( CHAR_DATA *ch, int gain )
  * Regeneration stuff.
  */
 
+sh_int gain_stat_offset = -1;
+
 void set_position( CHAR_DATA * ch, int position )
 {
     ch->position = position;
@@ -1059,11 +1061,14 @@ void set_position( CHAR_DATA * ch, int position )
 
 void check_regen( CHAR_DATA * ch )
 {
+    if ( ++gain_stat_offset >= MAX_GAIN_STATS )
+        gain_stat_offset = 0;
+
     if ( ch->position >= POS_DEAD )
     {
-	hit_gain( ch );
-	mana_gain( ch );
-	move_gain( ch );
+        hit_gain( ch );
+        mana_gain( ch );
+        move_gain( ch );
     }
 
     ch->regen_timer = current_time;
@@ -1073,6 +1078,10 @@ void hit_gain( CHAR_DATA *ch )
 {
     int gain;
     int number;
+    
+    // If we're all full up we don't even need to go on
+    if ( ch->hit >= ch->max_hit )
+        return;
 
     if ( IS_NPC(ch) )
     {
@@ -1143,7 +1152,10 @@ void hit_gain( CHAR_DATA *ch )
 
     if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
         gain = UMAX( gain, 1);
-    
+
+    if ( !IS_NPC( ch ) )
+        ch->pcdata->hit_gains[gain_stat_offset] = gain;
+
     ch->hit = UMIN( ch->hit + gain , ch->max_hit );
 }
 
@@ -1276,6 +1288,9 @@ void mana_gain( CHAR_DATA *ch )
         // And finally to make sure that regen can't stop completely
         gain = UMAX( gain, 2);
 
+        if ( !IS_NPC( ch ) )
+            ch->pcdata->mana_gains[type][gain_stat_offset] = gain;
+
         ch->mana[type] = UMIN( ch->max_mana[type], ch->mana[type] + gain );
     }
 }
@@ -1283,6 +1298,10 @@ void mana_gain( CHAR_DATA *ch )
 void move_gain( CHAR_DATA *ch )
 {
     int number,gain;
+
+    // If we're all full up we don't even need to go on
+    if ( ch->move >= ch->max_move )
+        return;
 
     if ( IS_NPC(ch) )
     {
@@ -1334,6 +1353,9 @@ void move_gain( CHAR_DATA *ch )
     if ( ch->position > POS_STUNNED && ch->position != POS_FIGHTING )
         gain = UMAX( gain, 1);
     
+    if ( !IS_NPC( ch ) )
+        ch->pcdata->move_gains[gain_stat_offset] = gain;
+
     ch->move = UMIN( ch->move + gain, ch->max_move );
 }
 
