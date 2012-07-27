@@ -2135,18 +2135,40 @@ void do_exits( CHAR_DATA *ch, char *argument )
 
 void do_worth( CHAR_DATA *ch, char *argument )
 {
+    char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
 
-    if (IS_NPC(ch))
+    argument = one_argument( argument, arg );
+    
+    if ( arg[0] != '\0' && !str_prefix( arg, "all" ) )
     {
-   	sprintf(buf,"You have:\n\r%ld Nenkemen crowns.\n\r%ld Maegmenel duckets\n\r%ld Lithdor wheels\n\r%ld greckles.\n\r",ch->gold[0],ch->gold[1],ch->gold[2],ch->gold[3]);
-	send_to_char(buf,ch);
-	return;
+        sprintf( buf, "You have:\n\r  %ld Nenkemen crowns\n\r  %ld Maegmenel duckets\n\r  %ld Lithdor wheels\n\r  %ld greckles\n\r",
+                 ch->gold[0], ch->gold[1], ch->gold[2], ch->gold[3] );
+    }
+    else
+    {
+        switch( race_table[ ch->race ][ ch->sex ].world )
+        {
+            case 0: // Nenkemen
+                sprintf( buf, "You have %ld crowns.\n\r", ch->gold[0] );
+                break;
+            case 1: // Maegmenel
+                sprintf( buf, "You have %ld duckets.\n\r", ch->gold[1] );
+                break;
+            case 2: // Lithdor
+                sprintf( buf, "You have %ld wheels.\n\r", ch->gold[2] );
+                break;
+            case 3: // Dark World
+                sprintf( buf, "You have %ld greckles.\n\r", ch->gold[3] );
+                break;
+            default:
+                // Not sure where they are from! Just show them everything
+                sprintf( buf, "You have:\n\r  %ld Nenkemen crowns\n\r  %ld Maegmenel duckets\n\r  %ld Lithdor wheels\n\r  %ld greckles\n\r",
+                         ch->gold[0], ch->gold[1], ch->gold[2], ch->gold[3] );
+        }
     }
 
-    sprintf(buf,"You have:\n\r%ld Nenkemen crowns.\n\r%ld Maegmenel duckets\n\r%ld Lithdor wheels\n\r%ld greckles.\n\r",ch->gold[0],ch->gold[1],ch->gold[2],ch->gold[3]);
-    send_to_char(buf,ch);
-
+    send_to_char( buf, ch );
     return;
 }
 
