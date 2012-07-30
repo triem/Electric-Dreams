@@ -1977,9 +1977,9 @@ void do_rshow( CHAR_DATA *ch, char *argument )
 	if ( ( pexit = location->exit[door] ) )
 	{
 	    sprintf( buf,
-		    "Door: %5s.  To: %ld.  Key: (unused) Keyword '%s'\n\rExit flags: %s",
+		    "Door: %5s.  To: %ld.  Keyword '%s'\n\rExit flags: %s",
 		    dir_name[door],
-		    pexit->to_room ? pexit->to_room->vnum : 0,
+		    pexit->u1.to_room ? pexit->u1.to_room->vnum : 0,
 		    (pexit->keyword[0] != '\0') ? pexit->keyword : "",
 		    get_exit_flag_string( pexit->exit_info ));
 	    strcat( buf1, buf );

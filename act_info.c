@@ -2080,20 +2080,19 @@ void do_exits( CHAR_DATA *ch, char *argument )
         }
 	    else
 	    {
-		char buf1[MAX_INPUT_LENGTH];
+        char exit_vnum[MAX_STRING_LENGTH];
+        sprintf( exit_vnum, "[%5ld] ", pexit->u1.to_room->vnum );
 
-		if ( IS_IMMORTAL( ch ) && IS_SET(ch->plr,PLR_HOLYLIGHT) )
-		    sprintf( buf1, "[%5ld] %s", pexit->u1.to_room->vnum, pexit->u1.to_room->name );
-		else
-		    strcpy( buf1, pexit->u1.to_room->name );
-
-		sprintf( buf + strlen(buf), "`g%-5s - %s  %s%s%s%s%s%s%s\n\r",
-		    capitalize( dir_name[door] ), (room_is_dark( pexit->u1.to_room, ch ) 
+		sprintf( buf + strlen(buf), "`g%-5s - %s%s  %s%s%s%s%s%s%s\n\r",
+		    capitalize( dir_name[door] ),
+            ( IS_IMMORTAL( ch ) && IS_SET( ch->plr, PLR_HOLYLIGHT ) )
+            ? exit_vnum : "",
+            (room_is_dark( pexit->u1.to_room, ch ) 
 			&& !IS_SET(ch->plr,PLR_HOLYLIGHT)
 			&& !IS_SET(ch->affected_by, AFF_DARK_VISION) )
 			?  "Too dark to tell" : 
 			(!IS_SET(pexit->exit_info, EX_CLOSED)) 
-                          ? buf1 : 
+                          ? pexit->u1.to_room->name : 
 			"(Closed Doorway)",  
 			 (IS_SET(pexit->exit_info, EX_HIDDEN) && ( ( IS_IMMORTAL(ch) && IS_SET(ch->plr,PLR_HOLYLIGHT) ) || IS_SET( pexit->exit_info, EX_CLOSED ) ) ) ? 
 			 "(Hidden)" : "" ,
