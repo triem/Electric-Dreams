@@ -1080,7 +1080,10 @@ void hit_gain( CHAR_DATA *ch )
 
     // If we're all full up we don't even need to go on
     if ( ch->hit >= ch->max_hit )
+    {
+        ch->hit = ch->max_hit;
         return;
+    }
 
     if ( IS_NPC(ch) )
     {
@@ -1183,7 +1186,11 @@ void mana_gain( CHAR_DATA *ch )
             break;
         }
     if ( full )
+    {
+        for ( type = 0 ; type < MAX_ELEMENT_TYPE ; type++ )
+            ch->mana[type] = ch->max_mana[type];
         return;
+    }
 
     if ( !IS_NPC( ch ) )
     {
@@ -1300,7 +1307,10 @@ void move_gain( CHAR_DATA *ch )
 
     // If we're all full up we don't even need to go on
     if ( ch->move >= ch->max_move )
+    {
+        ch->move = ch->max_move;
         return;
+    }
 
     if ( IS_NPC(ch) )
     {
