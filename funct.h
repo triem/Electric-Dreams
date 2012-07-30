@@ -1024,6 +1024,7 @@ void 	spell_teleport	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_ventriloquate	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_weaken	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_return_to_safety	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
+void    spell_rebuke        args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_acid_breath	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_fire_breath	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );
 void 	spell_gas_breath	args( ( int sn, int level, CHAR_DATA *ch, void *vo ) );

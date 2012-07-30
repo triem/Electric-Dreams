@@ -1224,15 +1224,15 @@ void spell_calm_spirit( int sn, int level, CHAR_DATA *ch, void *vo )
     /* get sum of all mobile levels in the room */
     for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
     {
-	if (vch->position == POS_FIGHTING)
-	{
-	    count++;
-	    if (IS_NPC(vch))
-	      mlevel += vch->level;
-	    else
-	      mlevel += vch->level/2;
-	    high_level = UMAX(high_level,vch->level);
-	}
+        if (vch->position == POS_FIGHTING)
+        {
+            count++;
+            if (IS_NPC(vch))
+                mlevel += vch->level;
+            else
+                mlevel += vch->level/2;
+            high_level = UMAX(high_level,vch->level);
+        }
     }
 
     /* compute chance of stopping combat */
@@ -1243,40 +1243,42 @@ void spell_calm_spirit( int sn, int level, CHAR_DATA *ch, void *vo )
 
     if (number_range(0, chance) >= mlevel)  /* hard to stop large fights */
     {
-	for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
-   	{
-	    if (!IS_NPC(vch))
-		continue;
+        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        {
+            if (!IS_NPC(vch))
+                continue;
 
-	    if (IS_NPC(vch) && (IS_SET(vch->imm_flags,IMM_MAGIC) ) )
-	      	continue;
+            if (IS_NPC(vch) && (IS_SET(vch->imm_flags,IMM_MAGIC) ) )
+                continue;
 
-	    if (IS_AFFECTED(vch,AFF_CALM_SPIRIT) || IS_AFFECTED(vch,AFF_BERSERK)
-	    ||  is_affected(vch,skill_lookup("frenzy")))
-	      	continue;
-	    
-	    send_to_char("A wave of calm passes over you.\n\r",vch);
+            if ( IS_AFFECTED( vch, AFF_BERSERK ) || is_affected( vch,skill_lookup("frenzy") ) )
+            {
+                act( "$n`w tries to calm you but you are too angry to stop!", ch, NULL, vch, TO_VICT );
+                act( "$n`w tries to calm $N`w but they are too angry to stop!", ch, NULL, vch, TO_NOTVICT );
+                act( "You try to calm $N`w but they are too angry to stop!", ch, NULL, vch, TO_CHAR );
+                continue;
+            }
 
-	    if (vch->fighting || vch->position == POS_FIGHTING)
-	      stop_fighting(vch,FALSE);
+            if ( vch->fighting || vch->position == POS_FIGHTING )
+                // Passing true to stop_fighting will stop it from both ends,
+                //  otherwise one party will just start it again.
+                stop_fighting( vch, TRUE );
 
-	    af.type = sn;
-  	    af.level = level;
-	    af.duration = level/3;
-	    af.location = APPLY_HITROLL;
-	    af.bitvector = 0;
-	    af.modifier = -5;
-	    affect_to_char(vch,&af);
-
-	    af.location = APPLY_AFFECT;
-	    af.bitvector = AFF_CALM_SPIRIT;
-    	    af.bit_type = BIT_AFFECT;
-	    affect_to_char(vch,&af);
-
-	    af.location = APPLY_DAMROLL;
-	    affect_to_char(vch,&af);
-	}
+            af.type = sn;
+            af.level = level;
+            af.duration = level/3;
+            af.location = APPLY_AFFECT;
+            af.bitvector = AFF_CALM_SPIRIT;
+            af.bit_type = BIT_AFFECT;
+            affect_to_char(vch,&af);
+            
+            act( "A wave of calm passes over you.", ch, NULL, vch, TO_VICT );
+            act( "A wave of calm passes over $N`w.", ch, NULL, vch, TO_NOTVICT );
+            act( "A wave of calm passes over $N`w.", ch, NULL, vch, TO_CHAR );
+        }
     }
+    
+    return;
 }
 
 void spell_remove_aura( int sn, int level, CHAR_DATA *ch, void *vo )
@@ -1466,6 +1468,12 @@ void spell_remove_aura( int sn, int level, CHAR_DATA *ch, void *vo )
     if (check_dispel(level,victim,skill_lookup("weaken")))
     {
         act("$n `wlooks stronger.",victim,NULL,NULL,TO_ROOM);
+        found = TRUE;
+    }
+    
+    if ( check_dispel( level, victim, skill_lookup("rebuke") ) )
+    {
+        act( "$n`w regains $s confidence.", victim, NULL, NULL, TO_ROOM );
         found = TRUE;
     }
  
@@ -2616,6 +2624,12 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo )
     if (check_dispel(level,victim,skill_lookup("weaken")))
     {
         act("$n `wlooks stronger.",victim,NULL,NULL,TO_ROOM);
+        found = TRUE;
+    }
+    
+    if ( check_dispel( level, victim, skill_lookup("rebuke") ) )
+    {
+        act( "$n`w regains $s confidence.", victim, NULL, NULL, TO_ROOM );
         found = TRUE;
     }
 
@@ -7856,5 +7870,31 @@ void spell_lightning_breath( int sn, int level, CHAR_DATA *ch, void *vo )
     if ( saves_spell( level, victim ) )
 	dam /= 2;
     damage( ch, victim, dam, sn, DAM_WATER );
+    return;
+}
+
+void spell_rebuke( int sn, int level, CHAR_DATA *ch, void *vo )
+{
+    CHAR_DATA *victim = (CHAR_DATA *) vo;
+    AFFECT_DATA af;
+
+    if ( is_affected( victim, sn ) || saves_spell( level, victim ) )
+        return;
+
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = level / 2;
+    af.bitvector = 0;
+    af.modifier  = -1 * ( get_curr_stat( ch, STAT_CHR ) / 2 );
+    // Apply it first to hitroll
+    af.location  = APPLY_HITROLL;
+    affect_to_char( victim, &af );
+    // And then to damroll
+    af.location = APPLY_DAMROLL;
+    affect_to_char( victim, &af );
+
+    act( "You are shaken by scornful words from $n`w.", ch, NULL, victim, TO_VICT );
+    act( "$N`w is shaken by your scornful words.", ch, NULL, victim, TO_CHAR );
+    act( "$N`w is shaken by scornful words from $n`w.", ch, NULL, victim, TO_ROOM );
     return;
 }

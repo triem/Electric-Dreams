@@ -259,6 +259,7 @@ sh_int			gsn_calm_spirit;
 sh_int			gsn_infravision;
 sh_int			gsn_breathe_underwater;
 sh_int			gsn_dimension_walk;
+sh_int          gsn_rebuke;
 
 sh_int			gsn_mining;
 sh_int			gsn_golem_making;

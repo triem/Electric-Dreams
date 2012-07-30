@@ -204,7 +204,7 @@ extern int	per_cpu_usage[];
 #define MAX_TOKENS_2			35
 #define MAX_GREETING			4 
 #define MAX_SOCIALS			512 
-#define MAX_SKILL			246
+#define MAX_SKILL			247
 #define MAX_MINERAL			16
 #define MAX_ELEMENT_TYPE		5
 #define MAX_ELEMENT_POWER		3
@@ -3395,6 +3395,7 @@ extern sh_int  gsn_calm_spirit;
 extern sh_int  gsn_infravision;
 extern sh_int  gsn_breathe_underwater;
 extern sh_int  gsn_dimension_walk;
+extern sh_int  gsn_rebuke;
 
 extern sh_int  gsn_mining;
 extern sh_int  gsn_armor_smithing;

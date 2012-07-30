@@ -119,4 +119,5 @@ DECLARE_SPELL_FUN(      spell_entangle          );
 DECLARE_SPELL_FUN(	spell_minor_sacrifice	);
 DECLARE_SPELL_FUN(	spell_sacrifice		);
 DECLARE_SPELL_FUN(	spell_major_sacrifice	);
+DECLARE_SPELL_FUN(  spell_rebuke        );
 
